@@ -1,0 +1,147 @@
+<!-- pages/add/add.wxml -->
+<view class="container">
+  <!-- 扫码识别 -->
+  <view class="scan-section">
+    <view class="scan-btn" bindtap="scanBarcode">
+      <text class="scan-icon">📷</text>
+      <view class="scan-text">
+        <text class="scan-title">扫条形码识别</text>
+        <text class="scan-hint">自动识别商品信息 · 本地历史匹配</text>
+      </view>
+    </view>
+    
+    <!-- 商品预览 -->
+    <view class="product-preview" wx:if="{{barcode && name}}">
+      <view class="product-image-wrapper">
+        <image 
+          class="product-image" 
+          src="{{productImage}}" 
+          mode="aspectFill"
+          wx:if="{{productImage}}"
+        />
+        <view class="product-image-placeholder" wx:else>
+          <text class="placeholder-icon">📦</text>
+        </view>
+      </view>
+      <view class="product-info">
+        <view class="product-name">{{name}}</view>
+        <view class="product-barcode">
+          <text class="barcode-label">条码：</text>
+          <text class="barcode-value">{{barcode}}</text>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 仅显示条码 -->
+    <view class="barcode-info" wx:if="{{barcode && !name}}">
+      <text class="barcode-label">条码：</text>
+      <text class="barcode-value">{{barcode}}</text>
+    </view>
+  </view>
+
+  <!-- 物品名称 -->
+  <view class="form-section">
+    <view class="section-title">
+      <text class="required">*</text>
+      <text>物品名称</text>
+    </view>
+    <view class="input-wrapper">
+      <input 
+        class="input" 
+        placeholder="请输入物品名称或扫码识别" 
+        value="{{name}}"
+        bindinput="onNameInput"
+        maxlength="30"
+      />
+    </view>
+  </view>
+
+  <!-- 分类 -->
+  <view class="form-section">
+    <view class="section-title">
+      <text>分类</text>
+    </view>
+    <view class="input-wrapper">
+      <input 
+        class="input" 
+        placeholder="请输入或选择分类" 
+        value="{{category}}"
+        bindinput="onCategoryInput"
+        maxlength="10"
+      />
+    </view>
+    <!-- 快捷分类 -->
+    <view class="quick-categories">
+      <view 
+        class="category-tag {{category === item ? 'active' : ''}}"
+        wx:for="{{categories}}"
+        wx:key="*this"
+        data-category="{{item}}"
+        bindtap="selectCategory"
+      >
+        {{item}}
+      </view>
+    </view>
+  </view>
+
+  <!-- 过期日期 -->
+  <view class="form-section">
+    <view class="section-title">
+      <text class="required">*</text>
+      <text>过期日期</text>
+    </view>
+    <picker 
+      mode="date" 
+      value="{{expireDate}}" 
+      start="{{minDate}}"
+      end="{{maxDate}}"
+      bindchange="onDateChange"
+    >
+      <view class="date-picker {{expireDate ? 'has-value' : ''}}">
+        <text class="date-icon">📅</text>
+        <text>{{expireDate || '请选择过期日期'}}</text>
+        <text class="arrow">›</text>
+      </view>
+    </picker>
+    <!-- 快捷日期 -->
+    <view class="quick-dates">
+      <view class="quick-date-item" bindtap="quickSetDate" data-days="3">3天后</view>
+      <view class="quick-date-item" bindtap="quickSetDate" data-days="7">7天后</view>
+      <view class="quick-date-item" bindtap="quickSetDate" data-days="30">30天后</view>
+      <view class="quick-date-item" bindtap="quickSetDate" data-days="90">3个月后</view>
+      <view class="quick-date-item" bindtap="quickSetDate" data-days="365">1年后</view>
+    </view>
+  </view>
+
+  <!-- 备注 -->
+  <view class="form-section">
+    <view class="section-title">
+      <text>备注</text>
+    </view>
+    <view class="textarea-wrapper">
+      <textarea 
+        class="textarea" 
+        placeholder="添加备注信息（可选）" 
+        value="{{note}}"
+        bindinput="onNoteInput"
+        maxlength="100"
+      />
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="btn-group">
+    <view class="btn btn-primary" bindtap="saveItem">
+      {{isEdit ? '保存修改' : '添加物品'}}
+    </view>
+    <view class="btn btn-danger" wx:if="{{isEdit}}" bindtap="deleteItem">
+      删除物品
+    </view>
+  </view>
+
+  <!-- 提示信息 -->
+  <view class="tips">
+    <view class="tip-item">💡 提示：物品会按过期时间自动排序</view>
+    <view class="tip-item">🔔 即将过期的物品会用醒目颜色标识</view>
+  </view>
+</view>

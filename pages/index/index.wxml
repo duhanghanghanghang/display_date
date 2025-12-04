@@ -1,0 +1,102 @@
+<!-- pages/index/index.wxml -->
+<view class="container">
+  <!-- 头部统计区域 -->
+  <view class="header-card">
+    <view class="header-title">
+      <text class="title-icon">📦</text>
+      <text class="title-text">物品管理</text>
+    </view>
+    <view class="stats-row">
+      <view class="stat-item" bindtap="onFilterChange" data-type="all">
+        <text class="stat-number">{{totalCount}}</text>
+        <text class="stat-label">全部</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item stat-expired" bindtap="onFilterChange" data-type="expired">
+        <text class="stat-number">{{expiredCount}}</text>
+        <text class="stat-label">已过期</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item stat-warning" bindtap="onFilterChange" data-type="warning">
+        <text class="stat-number">{{warningCount}}</text>
+        <text class="stat-label">即将过期</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 筛选标签 -->
+  <view class="filter-tabs">
+    <view class="filter-tab {{filterType === 'all' ? 'active' : ''}}" bindtap="onFilterChange" data-type="all">
+      全部
+    </view>
+    <view class="filter-tab {{filterType === 'expired' ? 'active' : ''}}" bindtap="onFilterChange" data-type="expired">
+      已过期
+    </view>
+    <view class="filter-tab {{filterType === 'warning' ? 'active' : ''}}" bindtap="onFilterChange" data-type="warning">
+      即将过期
+    </view>
+    <view class="filter-tab {{filterType === 'normal' ? 'active' : ''}}" bindtap="onFilterChange" data-type="normal">
+      正常
+    </view>
+  </view>
+
+  <!-- 物品列表 -->
+  <view class="item-list" wx:if="{{!isEmpty}}">
+    <view 
+      class="item-card" 
+      wx:for="{{items}}" 
+      wx:key="id"
+      bindtap="editItem"
+      bindlongpress="showActionSheet"
+      data-id="{{item.id}}"
+    >
+      <view class="item-left">
+        <image 
+          class="item-product-image" 
+          src="{{item.productImage}}" 
+          mode="aspectFill"
+          wx:if="{{item.productImage}}"
+        />
+        <view class="item-content">
+          <view class="item-category-badge" style="background-color: {{item.statusBgColor}}; color: {{item.statusColor}};">
+            {{item.category || '未分类'}}
+          </view>
+          <view class="item-name">{{item.name}}</view>
+          <view class="item-date">
+            <text class="date-icon">📅</text>
+            <text>过期：{{item.expireDate}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="item-right">
+        <view class="days-remaining" style="color: {{item.statusColor}};">
+          <text wx:if="{{item.daysRemaining < 0}}">已过期</text>
+          <text wx:elif="{{item.daysRemaining === 0}}">今天</text>
+          <text wx:else>{{item.daysRemaining}}天</text>
+        </view>
+        <view class="status-tag" style="background-color: {{item.statusBgColor}}; color: {{item.statusColor}};">
+          {{item.statusText}}
+        </view>
+      </view>
+      <!-- 删除按钮 -->
+      <view class="delete-btn" catchtap="deleteItem" data-id="{{item.id}}">
+        <text>🗑️</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{isEmpty}}">
+    <text class="empty-icon">📭</text>
+    <text class="empty-text">暂无物品记录</text>
+    <text class="empty-hint">点击下方按钮添加第一个物品</text>
+  </view>
+
+  <!-- 添加按钮 -->
+  <view class="add-btn-wrapper">
+    <view class="add-btn" bindtap="goToAdd">
+      <text class="add-icon">+</text>
+      <text class="add-text">添加物品</text>
+    </view>
+  </view>
+</view>

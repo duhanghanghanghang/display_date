@@ -1,0 +1,21 @@
+# 微信开发者工具
+.idea/
+.vscode/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 日志文件
+*.log
+
+# 临时文件
+*.tmp
+*.temp
+
+# 编译输出
+miniprogram_npm/
+
+# 本地配置（包含个人AppID）
+project.private.config.json
+

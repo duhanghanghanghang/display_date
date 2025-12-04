@@ -1,0 +1,314 @@
+/* pages/add/add.wxss */
+
+.container {
+  padding: 24rpx;
+  min-height: 100vh;
+  background: #F5F5F5;
+}
+
+/* 扫码区域 */
+.scan-section {
+  background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.3);
+}
+
+.scan-btn {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 16rpx;
+  padding: 24rpx;
+  backdrop-filter: blur(10rpx);
+}
+
+.scan-btn:active {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.scan-icon {
+  font-size: 60rpx;
+  margin-right: 20rpx;
+}
+
+.scan-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.scan-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin-bottom: 8rpx;
+}
+
+.scan-hint {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.barcode-info {
+  display: flex;
+  align-items: center;
+  margin-top: 16rpx;
+  padding: 12rpx 20rpx;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12rpx;
+}
+
+.barcode-label {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+  margin-right: 8rpx;
+}
+
+.barcode-value {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #FFFFFF;
+  font-family: 'Courier New', monospace;
+}
+
+/* 商品预览 */
+.product-preview {
+  display: flex;
+  align-items: center;
+  margin-top: 16rpx;
+  padding: 20rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 16rpx;
+  backdrop-filter: blur(10rpx);
+}
+
+.product-image-wrapper {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 12rpx;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.product-image {
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.product-image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholder-icon {
+  font-size: 48rpx;
+  opacity: 0.6;
+}
+
+.product-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.product-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin-bottom: 8rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.product-barcode {
+  display: flex;
+  align-items: center;
+}
+
+.product-barcode .barcode-label {
+  font-size: 22rpx;
+}
+
+.product-barcode .barcode-value {
+  font-size: 24rpx;
+}
+
+/* 表单区块 */
+.form-section {
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 28rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.section-title {
+  font-size: 28rpx;
+  color: #333333;
+  font-weight: 500;
+  margin-bottom: 20rpx;
+  display: flex;
+  align-items: center;
+}
+
+.required {
+  color: #FF4444;
+  margin-right: 4rpx;
+}
+
+/* 输入框 */
+.input-wrapper {
+  background: #F8F8F8;
+  border-radius: 12rpx;
+  padding: 0 24rpx;
+}
+
+.input {
+  height: 88rpx;
+  font-size: 30rpx;
+  color: #333333;
+}
+
+.input::placeholder {
+  color: #BBBBBB;
+}
+
+/* 快捷分类 */
+.quick-categories {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 20rpx;
+  gap: 16rpx;
+}
+
+.category-tag {
+  font-size: 26rpx;
+  color: #666666;
+  background: #F0F0F0;
+  padding: 12rpx 24rpx;
+  border-radius: 30rpx;
+  transition: all 0.3s;
+}
+
+.category-tag.active {
+  background: linear-gradient(135deg, #4A90E2, #357ABD);
+  color: #FFFFFF;
+}
+
+/* 日期选择器 */
+.date-picker {
+  display: flex;
+  align-items: center;
+  background: #F8F8F8;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  font-size: 30rpx;
+  color: #BBBBBB;
+}
+
+.date-picker.has-value {
+  color: #333333;
+}
+
+.date-icon {
+  margin-right: 16rpx;
+}
+
+.arrow {
+  margin-left: auto;
+  font-size: 36rpx;
+  color: #CCCCCC;
+}
+
+/* 快捷日期 */
+.quick-dates {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 20rpx;
+  gap: 16rpx;
+}
+
+.quick-date-item {
+  font-size: 24rpx;
+  color: #4A90E2;
+  background: #E8F4FD;
+  padding: 10rpx 20rpx;
+  border-radius: 20rpx;
+}
+
+.quick-date-item:active {
+  background: #D0E8FA;
+}
+
+/* 文本域 */
+.textarea-wrapper {
+  background: #F8F8F8;
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+}
+
+.textarea {
+  width: 100%;
+  height: 160rpx;
+  font-size: 30rpx;
+  color: #333333;
+  line-height: 1.6;
+}
+
+.textarea::placeholder {
+  color: #BBBBBB;
+}
+
+/* 按钮组 */
+.btn-group {
+  margin-top: 40rpx;
+  padding: 0 20rpx;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 96rpx;
+  border-radius: 48rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+  margin-bottom: 24rpx;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #52C41A, #3FAD09);
+  color: #FFFFFF;
+  box-shadow: 0 8rpx 24rpx rgba(82, 196, 26, 0.4);
+}
+
+.btn-danger {
+  background: #FFFFFF;
+  color: #FF4444;
+  border: 2rpx solid #FF4444;
+}
+
+.btn:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+/* 提示信息 */
+.tips {
+  margin-top: 40rpx;
+  padding: 0 20rpx;
+}
+
+.tip-item {
+  font-size: 24rpx;
+  color: #999999;
+  line-height: 2;
+}

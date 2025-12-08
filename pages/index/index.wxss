@@ -16,6 +16,17 @@
   box-shadow: 0 8rpx 32rpx rgba(74, 144, 226, 0.3);
 }
 
+.no-team {
+  background: #FFF6E5;
+  color: #D48806;
+  border: 1rpx dashed #FFD666;
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  margin-bottom: 16rpx;
+  font-size: 26rpx;
+  line-height: 1.6;
+}
+
 .header-title {
   display: flex;
   align-items: center;
@@ -73,6 +84,13 @@
 
 .stat-warning .stat-number {
   color: #FFE4B4;
+}
+
+.reminder-tip {
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: right;
 }
 
 /* 筛选标签 */
@@ -234,36 +252,3 @@
 }
 
 /* 添加按钮 */
-.add-btn-wrapper {
-  position: fixed;
-  bottom: 40rpx;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 100;
-}
-
-.add-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #52C41A, #3FAD09);
-  color: #FFFFFF;
-  padding: 24rpx 60rpx;
-  border-radius: 50rpx;
-  box-shadow: 0 8rpx 24rpx rgba(82, 196, 26, 0.4);
-}
-
-.add-btn:active {
-  transform: scale(0.95);
-}
-
-.add-icon {
-  font-size: 40rpx;
-  font-weight: 300;
-  margin-right: 12rpx;
-}
-
-.add-text {
-  font-size: 32rpx;
-  font-weight: 500;
-}

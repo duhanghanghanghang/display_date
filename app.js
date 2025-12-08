@@ -1,23 +1,84 @@
 // app.js
+const { BASE_URL } = require('./utils/config')
+
 App({
-  onLaunch() {
-    // 初始化本地存储
-    const items = wx.getStorageSync('items')
-    if (!items) {
-      wx.setStorageSync('items', [])
+  async onLaunch() {
+    // 初始化提醒设置
+    const reminderSettings = wx.getStorageSync('reminderSettings')
+    if (!reminderSettings || typeof reminderSettings.reminderDays !== 'number') {
+      wx.setStorageSync('reminderSettings', { reminderDays: 3 })
     }
-    
-    // 检查过期物品并提醒
+    // 登录获取 token/openid
+    await this.ensureToken()
+    // 可选：检查过期物品（如需改为后端提醒，可移除）
     this.checkExpiredItems()
   },
 
   globalData: {
-    // 全局数据
+    openid: ''
+  },
+
+  // 获取并缓存 token
+  async ensureToken() {
+    const cached = wx.getStorageSync('token')
+    if (cached) return cached
+    return new Promise((resolve, reject) => {
+      wx.login({
+        success: (res) => {
+          if (!res.code) {
+            wx.showToast({ title: '登录失败', icon: 'none' })
+            return reject(new Error('no code'))
+          }
+          wx.request({
+            url: `${BASE_URL}/login`,
+            method: 'POST',
+            data: { code: res.code },
+            success: (resp) => {
+              if (resp.statusCode >= 200 && resp.statusCode < 300) {
+                const { token, openid } = resp.data || {}
+                if (token) wx.setStorageSync('token', token)
+                if (openid) {
+                  wx.setStorageSync('openid', openid)
+                  this.globalData.openid = openid
+                }
+                resolve(token)
+              } else {
+                wx.showToast({ title: '登录失败', icon: 'none' })
+                reject(resp)
+              }
+            },
+            fail: (err) => {
+              wx.showToast({ title: '网络异常', icon: 'none' })
+              reject(err)
+            }
+          })
+        },
+        fail: reject
+      })
+    })
+  },
+
+  // 获取并缓存 openid
+  async ensureOpenId() {
+    if (this.globalData.openid) return this.globalData.openid
+    const cached = wx.getStorageSync('openid')
+    if (cached) {
+      this.globalData.openid = cached
+      return cached
+    }
+    await this.ensureToken()
+    const stored = wx.getStorageSync('openid')
+    if (stored) {
+      this.globalData.openid = stored
+      return stored
+    }
+    throw new Error('openid missing')
   },
 
   // 检查过期物品
   checkExpiredItems() {
     const items = wx.getStorageSync('items') || []
+    const reminderDays = this.getReminderDays()
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     
@@ -31,7 +92,7 @@ App({
       
       if (diffDays < 0) {
         expiredCount++
-      } else if (diffDays <= 3) {
+      } else if (diffDays <= reminderDays) {
         soonExpireCount++
       }
     })
@@ -64,15 +125,23 @@ App({
     return Math.floor((expireDate - today) / (1000 * 60 * 60 * 24))
   },
 
+  // 获取提醒天数（临期阈值）
+  getReminderDays() {
+    const settings = wx.getStorageSync('reminderSettings') || {}
+    const reminderDays = Number(settings.reminderDays)
+    return Number.isFinite(reminderDays) && reminderDays > 0 ? reminderDays : 3
+  },
+
   // 获取状态信息
-  getStatusInfo(daysRemaining) {
+  getStatusInfo(daysRemaining, reminderDaysParam) {
+    const reminderDays = typeof reminderDaysParam === 'number' ? reminderDaysParam : this.getReminderDays()
     if (daysRemaining < 0) {
       return { text: '已过期', color: '#FF4444', bgColor: '#FFE5E5' }
     } else if (daysRemaining === 0) {
       return { text: '今天过期', color: '#FF6600', bgColor: '#FFF0E5' }
-    } else if (daysRemaining <= 3) {
+    } else if (daysRemaining <= reminderDays) {
       return { text: '即将过期', color: '#FF8800', bgColor: '#FFF5E5' }
-    } else if (daysRemaining <= 7) {
+    } else if (daysRemaining <= reminderDays + 4) {
       return { text: '注意', color: '#FFAA00', bgColor: '#FFFBE5' }
     } else {
       return { text: '正常', color: '#00AA00', bgColor: '#E5FFE5' }

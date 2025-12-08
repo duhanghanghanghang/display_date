@@ -1,5 +1,6 @@
 // pages/add/add.js
 const app = getApp()
+const { request } = require('../../utils/request')
 
 Page({
   data: {
@@ -23,7 +24,8 @@ Page({
     apiKey: '91abc81fde78c04df860e64efdb47c00' // TianAPI密钥
   },
 
-  onLoad(options) {
+  async onLoad(options) {
+    this.teamInfo = wx.getStorageSync('teamInfo') || null
     // 设置日期范围
     const today = new Date()
     const minDate = this.formatDate(today)
@@ -38,26 +40,42 @@ Page({
     }
   },
 
+  // 生成唯一ID
+  generateId() {
+    return 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+  },
+
   // 加载物品信息（编辑模式）
   loadItem(id) {
-    const items = wx.getStorageSync('items') || []
-    const item = items.find(i => i.id === id)
-    
-    if (item) {
-      this.setData({
-        id: item.id,
-        name: item.name,
-        category: item.category || '',
-        expireDate: item.expireDate,
-        note: item.note || '',
-        barcode: item.barcode || '',
-        isEdit: true
-      })
-      
-      wx.setNavigationBarTitle({
-        title: '编辑物品'
-      })
-    }
+    const db = wx.cloud.database()
+    db.collection('items').doc(id).get({
+      success: (res) => {
+        const item = res.data
+        if (item) {
+          this.setData({
+            id: item._id,
+            name: item.name,
+            category: item.category || '',
+            expireDate: item.expireDate,
+            note: item.note || '',
+            barcode: item.barcode || '',
+            productImage: item.productImage || '',
+            isEdit: true
+          })
+          wx.setNavigationBarTitle({ title: '编辑物品' })
+          // 更新团队缓存的成员列表，便于后续保存
+          const teamInfo = wx.getStorageSync('teamInfo') || {}
+          if (item.memberOpenIds && item.memberOpenIds.length && teamInfo._id === item.teamId) {
+            wx.setStorageSync('teamInfo', { ...teamInfo, memberOpenIds: item.memberOpenIds })
+            this.teamInfo = { ...teamInfo, memberOpenIds: item.memberOpenIds }
+          }
+        }
+      },
+      fail: (err) => {
+        console.error('加载物品失败', err)
+        wx.showToast({ title: '加载失败', icon: 'none' })
+      }
+    })
   },
 
   // 输入物品名称
@@ -278,9 +296,12 @@ Page({
   },
 
   // 保存物品
-  saveItem() {
+  async saveItem() {
+    if (this.saving) return
+    this.saving = true
+    wx.showLoading({ title: '保存中...', mask: true })
     const { id, name, category, expireDate, note, barcode, productImage, isEdit } = this.data
-
+    let teamInfo = this.teamInfo
     // 验证
     if (!name.trim()) {
       wx.showToast({
@@ -298,58 +319,68 @@ Page({
       return
     }
 
-    let items = wx.getStorageSync('items') || []
+    const nowDate = this.formatDate(new Date())
 
-    if (isEdit) {
-      // 编辑模式：更新物品
-      const index = items.findIndex(i => i.id === id)
-      if (index !== -1) {
-        items[index] = {
-          ...items[index],
-          name: name.trim(),
-          category: category.trim(),
-          expireDate,
-          note: note.trim(),
-          updateDate: this.formatDate(new Date())
-        }
-      }
-    } else {
-      // 新增模式：添加物品
-      const newItem = {
-        id: this.generateId(),
-        name: name.trim(),
-        category: category.trim(),
-        expireDate,
-        note: note.trim(),
-        barcode: barcode || '', // 保存条码
-        productImage: productImage || '', // 保存商品图片
-        addDate: this.formatDate(new Date())
-      }
-      items.push(newItem)
-      
-      // 如果手动输入了商品名（有条码但API没识别到），保存到本地历史
-      if (barcode && name.trim()) {
-        this.saveToLocalHistory(barcode, {
-          name: name.trim(),
-          category: category.trim(),
-          note: note.trim(),
-          image: productImage || ''
-        })
-      }
+    const teamId = teamInfo && teamInfo._id ? teamInfo._id : null
+
+    // 有团队：走云端
+    const openid = await app.ensureOpenId()
+    const members = (teamInfo && teamInfo.memberOpenIds && teamInfo.memberOpenIds.length) ? teamInfo.memberOpenIds : [openid]
+    const payload = {
+      name: name.trim(),
+      category: category.trim(),
+      expireDate,
+      note: note.trim(),
+      barcode: barcode || '',
+      productImage: productImage || '',
+      updateDate: nowDate,
+      teamId,
+      memberOpenIds: members
     }
 
-    // 保存到本地存储
-    wx.setStorageSync('items', items)
-
-    wx.showToast({
-      title: isEdit ? '修改成功' : '添加成功',
-      icon: 'success'
-    })
-
-    // 返回上一页
-    setTimeout(() => {
-      wx.navigateBack()
-    }, 1000)
+    if (isEdit && id) {
+      try {
+        await request({
+          url: `/items/${id}`,
+          method: 'PATCH',
+          data: payload
+        })
+        wx.showToast({ title: '修改成功', icon: 'success' })
+        setTimeout(() => wx.navigateBack(), 800)
+      } catch (err) {
+        console.error('更新失败', err)
+        wx.showToast({ title: '更新失败', icon: 'none' })
+      }
+    } else {
+      try {
+        await request({
+          url: '/items',
+          method: 'POST',
+          data: {
+            ...payload,
+            ownerOpenId: openid,
+            addDate: nowDate,
+            deleted: false,
+            teamId
+          }
+        })
+        wx.showToast({ title: '添加成功', icon: 'success' })
+        if (barcode && name.trim()) {
+          this.saveToLocalHistory(barcode, {
+            name: name.trim(),
+            category: category.trim(),
+            note: note.trim(),
+            image: productImage || ''
+          })
+        }
+        this.afterAddSuccess(false)
+      } catch (err) {
+        console.error('添加失败', err)
+        wx.showToast({ title: '添加失败', icon: 'none' })
+      }
+    }
+    wx.hideLoading()
+    this.saving = false
   },
 
   // 生成唯一ID
@@ -357,30 +388,123 @@ Page({
     return 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
   },
 
+  // 添加/恢复后给用户选择返回首页或继续添加
+  afterAddSuccess(isEdit) {
+    if (isEdit) {
+      setTimeout(() => wx.navigateBack(), 800)
+      return
+    }
+    wx.showModal({
+      title: '添加成功',
+      content: '返回首页或继续添加？',
+      confirmText: '返回首页',
+      cancelText: '继续添加',
+      success: (res) => {
+        if (res.confirm) {
+          wx.switchTab({ url: '/pages/index/index' })
+        } else {
+          this.resetForm()
+        }
+      }
+    })
+  },
+
+  // 重置表单，便于继续添加
+  resetForm() {
+    this.setData({
+      id: '',
+      name: '',
+      category: '',
+      expireDate: '',
+      note: '',
+      barcode: '',
+      productImage: '',
+      isEdit: false
+    })
+  },
+
   // 删除物品（编辑模式下）
   deleteItem() {
+    if (this.deleting) return
     const { id, name } = this.data
 
     wx.showModal({
       title: '确认删除',
       content: `确定要删除「${name}」吗？`,
       confirmColor: '#FF4444',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          let items = wx.getStorageSync('items') || []
-          items = items.filter(i => i.id !== id)
-          wx.setStorageSync('items', items)
-
-          wx.showToast({
-            title: '删除成功',
-            icon: 'success'
-          })
-
-          setTimeout(() => {
-            wx.navigateBack()
-          }, 1000)
+          wx.showLoading({ title: '删除中...', mask: true })
+          try {
+            const openid = await app.ensureOpenId()
+            await request({
+              url: `/items/${id}/delete`,
+              method: 'PATCH',
+              data: { deletedBy: openid }
+            })
+            wx.showToast({ title: '删除成功', icon: 'success' })
+            setTimeout(() => wx.navigateBack(), 800)
+          } catch (err) {
+            console.error('删除失败', err)
+            wx.showToast({ title: '删除失败', icon: 'none' })
+          }
+          wx.hideLoading()
+        } else {
+          this.deleting = false
+          return
         }
+        this.deleting = false
       }
     })
   }
 })
+
+// 确保个人团队（无团队时创建一个）
+Page.prototype.ensurePersonalTeam = async function () {
+  const cached = wx.getStorageSync('teamInfo')
+  if (cached && cached._id) {
+    this.teamInfo = cached
+    return cached
+  }
+  try {
+    const openid = await app.ensureOpenId()
+    const db = wx.cloud.database()
+    // 已有个人团队则复用
+    const existed = await db.collection('teams').where({ ownerOpenId: openid, name: '我的团队' }).limit(1).get()
+    if (existed.data && existed.data.length) {
+      const teamInfo = {
+        _id: existed.data[0]._id,
+        name: existed.data[0].name,
+        ownerOpenId: existed.data[0].ownerOpenId,
+        memberOpenIds: existed.data[0].memberOpenIds || [openid],
+        inviteCode: existed.data[0].inviteCode || ''
+      }
+      wx.setStorageSync('teamInfo', teamInfo)
+      this.teamInfo = teamInfo
+      return teamInfo
+    }
+    const res = await db.collection('teams').add({
+      data: {
+        name: '我的团队',
+        ownerOpenId: openid,
+        memberOpenIds: [openid],
+        inviteCode: this.generateId(),
+        createdAt: new Date()
+      }
+    })
+    const teamInfo = {
+      _id: res._id,
+      name: '我的团队',
+      ownerOpenId: openid,
+      memberOpenIds: [openid],
+      inviteCode: ''
+    }
+    wx.setStorageSync('teamInfo', teamInfo)
+    this.teamInfo = teamInfo
+    return teamInfo
+  } catch (err) {
+    console.error('创建个人团队失败', err)
+    wx.showToast({ title: '初始化团队失败', icon: 'none' })
+    throw err
+  }
+}

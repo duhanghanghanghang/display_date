@@ -1,0 +1,114 @@
+<view class="container">
+  <view class="profile-card card">
+    <view class="avatar">🔔</view>
+    <view class="profile-info">
+      <view class="title">我的</view>
+      <view class="subtitle">设置消息推送与临期提醒</view>
+    </view>
+  </view>
+
+  <view class="card setting-card">
+    <view class="setting-header">
+      <view class="setting-title">临期提醒天数</view>
+      <view class="setting-value">提前{{reminderDays}}天</view>
+    </view>
+    <slider 
+      min="{{minDays}}" 
+      max="{{maxDays}}" 
+      step="1" 
+      value="{{reminderDays}}" 
+      bindchange="onReminderChange"
+      activeColor="#4A90E2"
+      backgroundColor="#E8F4FD"
+      block-color="#357ABD"
+      block-size="26"
+      show-value
+    />
+    <view class="setting-tip">到期前{{reminderDays}}天会触发提醒</view>
+    <view class="btn btn-primary save-btn" bindtap="saveSettings">保存提醒设置</view>
+  </view>
+
+  <view class="card info-card">
+    <view class="info-title">推送说明</view>
+    <view class="info-text">目前采用本地提醒（打开小程序时检测并提示）。如需订阅消息推送，需在微信后台配置模板并获取用户授权。</view>
+    <view class="info-text">您仍可在此处设置临期阈值，后续接入推送时可直接复用。</view>
+    <view class="btn btn-success test-btn" bindtap="previewReminder">预览提醒效果</view>
+    <view class="btn btn-primary subscribe-btn" bindtap="requestSubscribe">获取订阅消息授权</view>
+    <view class="btn btn-primary send-btn" bindtap="requestSubscribeAndSend">测试推送</view>
+  </view>
+
+  <view class="card team-card">
+    <view class="team-header">
+      <view>
+        <view class="team-title">团队/协作</view>
+        <view class="team-subtitle" wx:if="{{teamInfo}}">当前团队：{{teamInfo.name || '未命名'}}（邀请码：{{teamInfo.inviteCode}}）</view>
+        <view class="team-subtitle" wx:else>未加入团队，请创建或输入邀请码加入</view>
+      </view>
+      <view class="team-actions">
+        <view class="btn mini-btn" bindtap="refreshTeam">刷新</view>
+        <view class="btn mini-btn" bindtap="copyInvite" wx:if="{{teamInfo && teamInfo.inviteCode}}">复制邀请码</view>
+        <view class="btn mini-btn" bindtap="regenerateInvite" wx:if="{{teamInfo && teamInfo.inviteCode}}">重置邀请码</view>
+      </view>
+    </view>
+
+    <view class="team-buttons">
+      <input class="team-name-input" placeholder="输入团队名称" value="{{teamNameInput}}" data-field="teamNameInput" bindinput="onInputChange" />
+      <view class="btn btn-primary" bindtap="createTeam" loading="{{creating}}" disabled="{{creating}}">创建团队</view>
+      <view class="btn mini-btn" bindtap="renameTeam" wx:if="{{teamInfo}}" loading="{{renaming}}" disabled="{{renaming}}">重命名</view>
+      <view class="btn mini-btn danger" bindtap="leaveTeam" wx:if="{{teamInfo}}" loading="{{leaving}}" disabled="{{leaving}}">退出团队</view>
+    </view>
+
+    <view class="invite-row">
+      <input class="invite-input" placeholder="输入邀请码加入团队" value="{{inviteCodeInput}}" bindinput="onInviteInput" />
+      <view class="btn btn-primary join-btn" bindtap="joinTeam" loading="{{joining}}" disabled="{{joining}}">加入</view>
+    </view>
+    <view class="team-tip">说明：团队内成员共享同一物品数据。请将邀请码发给好友，对方输入后即加入。</view>
+
+    <view class="team-tabs">
+      <view class="tab {{currentTab === 'created' ? 'active' : ''}}" data-tab="created" bindtap="switchTab">我创建的</view>
+      <view class="tab {{currentTab === 'joined' ? 'active' : ''}}" data-tab="joined" bindtap="switchTab">我加入的</view>
+    </view>
+
+    <view class="team-list" wx:if="{{currentTab === 'created'}}">
+      <view class="team-card-item" wx:for="{{createdTeams}}" wx:key="_id">
+        <view class="team-item-header">
+          <view class="team-item-title">{{item.name || '未命名'}}</view>
+          <view class="team-item-role">创建者</view>
+        </view>
+        <view class="team-item-row">邀请码：{{item.inviteCode || '-'}}</view>
+        <view class="team-item-row">成员数：{{item.memberOpenIds ? item.memberOpenIds.length : 0}}</view>
+        <view class="team-item-actions">
+          <view class="btn mini-btn" data-id="{{item._id}}" bindtap="selectTeam">设为当前</view>
+          <view class="btn mini-btn" data-field="inviteCode" wx:if="{{item.inviteCode}}" bindtap="copyInvite" data-code="{{item.inviteCode}}">复制邀请码</view>
+        </view>
+      </view>
+      <view class="empty-tip" wx:if="{{!(createdTeams && createdTeams.length)}}">暂无创建的团队</view>
+    </view>
+
+    <view class="team-list" wx:if="{{currentTab === 'joined'}}">
+      <view class="team-card-item" wx:for="{{joinedTeams}}" wx:key="_id">
+        <view class="team-item-header">
+          <view class="team-item-title">{{item.name || '未命名'}}</view>
+          <view class="team-item-role">成员</view>
+        </view>
+        <view class="team-item-row">邀请码：{{item.inviteCode || '-'}}</view>
+        <view class="team-item-row">成员数：{{item.memberOpenIds ? item.memberOpenIds.length : 0}}</view>
+        <view class="team-item-actions">
+          <view class="btn mini-btn" data-id="{{item._id}}" bindtap="selectTeam">设为当前</view>
+        </view>
+      </view>
+      <view class="empty-tip" wx:if="{{!(joinedTeams && joinedTeams.length)}}">暂无加入的团队</view>
+    </view>
+
+    <view class="member-list" wx:if="{{teamMembers.length}}">
+      <view class="member-title">当前团队成员</view>
+      <view class="member-item" wx:for="{{teamMembers}}" wx:key="*this">
+        <text>{{item}}</text>
+        <text wx:if="{{teamInfo && teamInfo.ownerOpenId === item}}" class="owner-tag">（创建者）</text>
+        <view class="btn mini-btn danger" wx:if="{{teamInfo && teamInfo.ownerOpenId === teamInfo.ownerOpenId && teamInfo.ownerOpenId !== item}}" data-id="{{item}}" bindtap="removeMember">移除</view>
+      </view>
+    </view>
+  </view>
+
+</view>
+

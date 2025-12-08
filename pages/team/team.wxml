@@ -1,0 +1,84 @@
+<view class="container">
+  <view class="card team-card">
+    <view class="team-header">
+      <view class="team-title-row">
+        <view class="team-title">团队/协作</view>
+        <view class="tag" wx:if="{{teamInfo}}">{{teamMembers.length || 0}} 人</view>
+      </view>
+      <view class="team-subtitle" wx:if="{{teamInfo}}">当前团队：{{teamInfo.name || '未命名'}}</view>
+      <view class="team-subtitle" wx:if="{{teamInfo && teamInfo.inviteCode}}">
+        邀请码：{{teamInfo.inviteCode}}
+        <text class="link" bindtap="copyInvite">复制</text>
+        <text class="link" bindtap="regenerateInvite">重置</text>
+      </view>
+      <view class="team-subtitle" wx:else>未加入团队，请创建或输入邀请码加入</view>
+      <view class="switch-personal" bindtap="switchToPersonal">切换到个人空间</view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">快捷操作</view>
+      <view class="btn block-btn" bindtap="createTeam" loading="{{creating}}" disabled="{{creating}}">创建团队</view>
+      <view class="inline-actions" wx:if="{{teamInfo}}">
+        <view class="btn ghost-btn" bindtap="renameTeam" loading="{{renaming}}" disabled="{{renaming}}">重命名</view>
+        <view class="btn ghost-btn danger" bindtap="leaveTeam" loading="{{leaving}}" disabled="{{leaving}}">退出团队</view>
+        <view class="btn ghost-btn" bindtap="refreshTeam">刷新</view>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">加入团队</view>
+      <view class="invite-row">
+        <input class="invite-input" placeholder="输入邀请码加入团队" value="{{inviteCodeInput}}" bindinput="onInviteInput" />
+        <view class="btn btn-primary join-btn" bindtap="joinTeam" loading="{{joining}}" disabled="{{joining}}">加入</view>
+      </view>
+      <view class="team-tip">说明：团队成员共享物品数据，可复制邀请码发送给好友。</view>
+    </view>
+
+    <view class="team-tabs">
+      <view class="tab {{currentTab === 'created' ? 'active' : ''}}" data-tab="created" bindtap="switchTab">我创建的</view>
+      <view class="tab {{currentTab === 'joined' ? 'active' : ''}}" data-tab="joined" bindtap="switchTab">我加入的</view>
+    </view>
+
+    <view class="team-list" wx:if="{{currentTab === 'created'}}">
+      <view class="team-card-item" wx:for="{{createdTeams}}" wx:key="_id">
+        <view class="team-item-header">
+          <view class="team-item-title">{{item.name || '未命名'}}</view>
+        <view class="team-item-role">创建者</view>
+        </view>
+      <view class="team-item-row">邀请码：{{item.inviteCode || '-'}}</view>
+      <view class="team-item-row">成员数：{{item.memberOpenIds ? item.memberOpenIds.length : 0}} / {{item.quota || 5}}</view>
+        <view class="team-item-actions">
+          <view class="btn mini-btn" data-id="{{item._id}}" bindtap="selectTeam">设为当前</view>
+          <view class="btn mini-btn" data-field="inviteCode" wx:if="{{item.inviteCode}}" bindtap="copyInvite" data-code="{{item.inviteCode}}">复制邀请码</view>
+        </view>
+      </view>
+      <view class="empty-tip" wx:if="{{!(createdTeams && createdTeams.length)}}">暂无创建的团队</view>
+    </view>
+
+    <view class="team-list" wx:if="{{currentTab === 'joined'}}">
+      <view class="team-card-item" wx:for="{{joinedTeams}}" wx:key="_id">
+        <view class="team-item-header">
+          <view class="team-item-title">{{item.name || '未命名'}}</view>
+        <view class="team-item-role">成员</view>
+        </view>
+      <view class="team-item-row">邀请码：{{item.inviteCode || '-'}}</view>
+      <view class="team-item-row">成员数：{{item.memberOpenIds ? item.memberOpenIds.length : 0}} / {{item.quota || 5}}</view>
+        <view class="team-item-actions">
+          <view class="btn mini-btn" data-id="{{item._id}}" bindtap="selectTeam">设为当前</view>
+        </view>
+      </view>
+      <view class="empty-tip" wx:if="{{!(joinedTeams && joinedTeams.length)}}">暂无加入的团队</view>
+    </view>
+
+    <view class="member-list" wx:if="{{teamMembers.length}}">
+      <view class="member-title">当前团队成员</view>
+      <view class="member-item" wx:for="{{teamMembers}}" wx:key="*this">
+        <text>{{item}}</text>
+        <text wx:if="{{teamInfo && teamInfo.ownerOpenId === item}}" class="owner-tag">（创建者）</text>
+        <view class="btn mini-btn danger" wx:if="{{teamInfo && teamInfo.ownerOpenId !== item}}" data-id="{{item}}" bindtap="removeMember">移除</view>
+      </view>
+    </view>
+    <view class="empty-tip" wx:if="{{!(teamMembers && teamMembers.length)}}">暂无成员</view>
+  </view>
+</view>
+

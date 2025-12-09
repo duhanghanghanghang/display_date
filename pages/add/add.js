@@ -2,6 +2,32 @@
 const app = getApp()
 const { request } = require('../../utils/request')
 
+function mapTeam(apiTeam = {}) {
+  return {
+    id: apiTeam.id || apiTeam._id,
+    _id: apiTeam.id || apiTeam._id,
+    name: apiTeam.name || '我的团队',
+    inviteCode: apiTeam.invite_code || apiTeam.inviteCode || '',
+    ownerOpenId: apiTeam.owner_openid || apiTeam.ownerOpenId,
+    memberOpenIds: apiTeam.member_openids || apiTeam.memberOpenIds || []
+  }
+}
+
+function mapItem(apiItem = {}) {
+  const id = apiItem.id || apiItem._id
+  return {
+    id,
+    _id: id,
+    name: apiItem.name || '',
+    category: apiItem.category || '',
+    expireDate: apiItem.expire_date || apiItem.expireDate || '',
+    note: apiItem.note || '',
+    barcode: apiItem.barcode || '',
+    productImage: apiItem.product_image || apiItem.productImage || '',
+    teamId: apiItem.team_id || apiItem.teamId || null
+  }
+}
+
 Page({
   data: {
     id: '',
@@ -47,35 +73,29 @@ Page({
 
   // 加载物品信息（编辑模式）
   loadItem(id) {
-    const db = wx.cloud.database()
-    db.collection('items').doc(id).get({
-      success: (res) => {
-        const item = res.data
-        if (item) {
-          this.setData({
-            id: item._id,
-            name: item.name,
-            category: item.category || '',
-            expireDate: item.expireDate,
-            note: item.note || '',
-            barcode: item.barcode || '',
-            productImage: item.productImage || '',
-            isEdit: true
-          })
-          wx.setNavigationBarTitle({ title: '编辑物品' })
-          // 更新团队缓存的成员列表，便于后续保存
-          const teamInfo = wx.getStorageSync('teamInfo') || {}
-          if (item.memberOpenIds && item.memberOpenIds.length && teamInfo._id === item.teamId) {
-            wx.setStorageSync('teamInfo', { ...teamInfo, memberOpenIds: item.memberOpenIds })
-            this.teamInfo = { ...teamInfo, memberOpenIds: item.memberOpenIds }
-          }
-        }
-      },
-      fail: (err) => {
+    request({
+      url: `/items/${id}`,
+      method: 'GET'
+    })
+      .then((res) => {
+        const item = mapItem(res)
+        this.teamInfo = wx.getStorageSync('teamInfo') || null
+        this.setData({
+          id: item._id,
+          name: item.name,
+          category: item.category || '',
+          expireDate: item.expireDate,
+          note: item.note || '',
+          barcode: item.barcode || '',
+          productImage: item.productImage || '',
+          isEdit: true
+        })
+        wx.setNavigationBarTitle({ title: '编辑物品' })
+      })
+      .catch((err) => {
         console.error('加载物品失败', err)
         wx.showToast({ title: '加载失败', icon: 'none' })
-      }
-    })
+      })
   },
 
   // 输入物品名称
@@ -319,23 +339,16 @@ Page({
       return
     }
 
-    const nowDate = this.formatDate(new Date())
-
     const teamId = teamInfo && teamInfo._id ? teamInfo._id : null
 
-    // 有团队：走云端
-    const openid = await app.ensureOpenId()
-    const members = (teamInfo && teamInfo.memberOpenIds && teamInfo.memberOpenIds.length) ? teamInfo.memberOpenIds : [openid]
     const payload = {
       name: name.trim(),
       category: category.trim(),
-      expireDate,
+      expire_date: expireDate,
       note: note.trim(),
       barcode: barcode || '',
-      productImage: productImage || '',
-      updateDate: nowDate,
-      teamId,
-      memberOpenIds: members
+      product_image: productImage || '',
+      teamId
     }
 
     if (isEdit && id) {
@@ -356,13 +369,7 @@ Page({
         await request({
           url: '/items',
           method: 'POST',
-          data: {
-            ...payload,
-            ownerOpenId: openid,
-            addDate: nowDate,
-            deleted: false,
-            teamId
-          }
+          data: payload
         })
         wx.showToast({ title: '添加成功', icon: 'success' })
         if (barcode && name.trim()) {
@@ -467,38 +474,20 @@ Page.prototype.ensurePersonalTeam = async function () {
     return cached
   }
   try {
-    const openid = await app.ensureOpenId()
-    const db = wx.cloud.database()
-    // 已有个人团队则复用
-    const existed = await db.collection('teams').where({ ownerOpenId: openid, name: '我的团队' }).limit(1).get()
-    if (existed.data && existed.data.length) {
-      const teamInfo = {
-        _id: existed.data[0]._id,
-        name: existed.data[0].name,
-        ownerOpenId: existed.data[0].ownerOpenId,
-        memberOpenIds: existed.data[0].memberOpenIds || [openid],
-        inviteCode: existed.data[0].inviteCode || ''
-      }
-      wx.setStorageSync('teamInfo', teamInfo)
-      this.teamInfo = teamInfo
-      return teamInfo
+    await app.ensureOpenId()
+    const createdRes = await request({ url: '/teams?type=created', method: 'GET' })
+    const existed = (createdRes.teams || []).map(mapTeam).find(t => t.name === '我的团队')
+    if (existed) {
+      wx.setStorageSync('teamInfo', existed)
+      this.teamInfo = existed
+      return existed
     }
-    const res = await db.collection('teams').add({
-      data: {
-        name: '我的团队',
-        ownerOpenId: openid,
-        memberOpenIds: [openid],
-        inviteCode: this.generateId(),
-        createdAt: new Date()
-      }
+    const newTeam = await request({
+      url: '/teams',
+      method: 'POST',
+      data: { name: '我的团队' }
     })
-    const teamInfo = {
-      _id: res._id,
-      name: '我的团队',
-      ownerOpenId: openid,
-      memberOpenIds: [openid],
-      inviteCode: ''
-    }
+    const teamInfo = mapTeam(newTeam)
     wx.setStorageSync('teamInfo', teamInfo)
     this.teamInfo = teamInfo
     return teamInfo

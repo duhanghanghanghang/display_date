@@ -2,6 +2,28 @@
 const app = getApp()
 const { request } = require('../../utils/request')
 
+function normalizeItem(apiItem = {}) {
+  const id = apiItem.id || apiItem._id
+  return {
+    ...apiItem,
+    id,
+    _id: id,
+    expireDate: apiItem.expireDate || apiItem.expire_date || '',
+    productImage: apiItem.productImage || apiItem.product_image || ''
+  }
+}
+
+function mapTeam(apiTeam = {}) {
+  return {
+    id: apiTeam.id || apiTeam._id,
+    _id: apiTeam.id || apiTeam._id,
+    name: apiTeam.name || '我的团队',
+    inviteCode: apiTeam.invite_code || apiTeam.inviteCode || '',
+    ownerOpenId: apiTeam.owner_openid || apiTeam.ownerOpenId,
+    memberOpenIds: apiTeam.member_openids || apiTeam.memberOpenIds || []
+  }
+}
+
 Page({
   data: {
     items: [],
@@ -11,6 +33,8 @@ Page({
     reminderDays: 3,
     teamInfo: null,
     hasTeam: false,
+    loginReady: false,
+    userOpenId: '',
     loading: false,
     pendingSyncCount: 0,
     // 统计数据
@@ -35,16 +59,28 @@ Page({
     this.loadItems().finally(() => {
       wx.stopPullDownRefresh()
     })
-    wx.stopPullDownRefresh()
   },
 
   async initTeam() {
-    const teamInfo = wx.getStorageSync('teamInfo') || null
-    this.setData({
-      teamInfo,
-      hasTeam: !!teamInfo
-    })
-    return teamInfo
+    try {
+      const openid = await app.ensureOpenId()
+      let teamInfo = wx.getStorageSync('teamInfo') || null
+      if (!teamInfo || !teamInfo._id) {
+        teamInfo = await this.ensurePersonalTeam()
+      }
+      this.setData({
+        teamInfo,
+        hasTeam: !!teamInfo,
+        userOpenId: openid,
+        loginReady: true
+      })
+      return teamInfo
+    } catch (err) {
+      console.error('初始化个人空间失败', err)
+      wx.showToast({ title: '登录失败，请稍后重试', icon: 'none' })
+      this.setData({ loginReady: false })
+      return null
+    }
   },
 
   // 加载物品列表
@@ -52,18 +88,25 @@ Page({
     // 避免并发或重复触发的重复请求
     if (this._loadingItems) return
     this._loadingItems = true
+    this.setData({ loading: true })
 
-    const teamInfo = this.data.teamInfo
+    let teamInfo = this.data.teamInfo
     const openid = await app.ensureOpenId()
     let items = []
-    this.setData({ loading: true })
+    try {
+      if (!teamInfo || !teamInfo._id) {
+        teamInfo = await this.ensurePersonalTeam()
+        this.setData({ teamInfo, hasTeam: !!teamInfo })
+      }
+    } catch (err) {
+      console.warn('创建/获取个人空间失败，继续使用本地数据', err)
+    }
     try {
       const res = await request({
         url: '/items',
         method: 'GET',
         data: {
-          teamId: teamInfo && teamInfo._id ? teamInfo._id : '',
-          ownerOpenId: openid
+          teamId: teamInfo && teamInfo._id ? teamInfo._id : ''
         }
       })
       items = res.items || []
@@ -108,6 +151,11 @@ Page({
       this._loadingItems = false
       this.setData({ loading: false })
     }
+  },
+
+  // 快捷添加按钮
+  goToQuickAdd() {
+    this.goToAdd()
   },
 
   // 筛选物品
@@ -220,37 +268,20 @@ Page.prototype.ensurePersonalTeam = async function () {
     return cached
   }
   try {
-    const openid = await app.ensureOpenId()
-    const db = wx.cloud.database()
-    const existed = await db.collection('teams').where({ ownerOpenId: openid, name: '我的团队' }).limit(1).get()
-    if (existed.data && existed.data.length) {
-      const teamInfo = {
-        _id: existed.data[0]._id,
-        name: existed.data[0].name,
-        ownerOpenId: existed.data[0].ownerOpenId,
-        memberOpenIds: existed.data[0].memberOpenIds || [openid],
-        inviteCode: existed.data[0].inviteCode || ''
-      }
-      wx.setStorageSync('teamInfo', teamInfo)
-      this.setData({ teamInfo, hasTeam: true })
-      return teamInfo
+    await app.ensureOpenId()
+    const createdRes = await request({ url: '/teams?type=created', method: 'GET' })
+    const existed = (createdRes.teams || []).map(mapTeam).find(t => t.name === '我的团队')
+    if (existed) {
+      wx.setStorageSync('teamInfo', existed)
+      this.setData({ teamInfo: existed, hasTeam: true })
+      return existed
     }
-    const res = await db.collection('teams').add({
-      data: {
-        name: '我的团队',
-        ownerOpenId: openid,
-        memberOpenIds: [openid],
-        inviteCode: 'P-' + Math.random().toString(36).slice(2, 8).toUpperCase(),
-        createdAt: new Date()
-      }
+    const newTeam = await request({
+      url: '/teams',
+      method: 'POST',
+      data: { name: '我的团队' }
     })
-    const teamInfo = {
-      _id: res._id,
-      name: '我的团队',
-      ownerOpenId: openid,
-      memberOpenIds: [openid],
-      inviteCode: ''
-    }
+    const teamInfo = mapTeam(newTeam)
     wx.setStorageSync('teamInfo', teamInfo)
     this.setData({ teamInfo, hasTeam: true })
     return teamInfo

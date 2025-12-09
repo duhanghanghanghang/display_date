@@ -21,7 +21,6 @@ Page({
 
   async onLoad() {
     await this.initTeam()
-    this.loadItems()
   },
 
   async onShow() {
@@ -50,6 +49,10 @@ Page({
 
   // 加载物品列表
   async loadItems() {
+    // 避免并发或重复触发的重复请求
+    if (this._loadingItems) return
+    this._loadingItems = true
+
     const teamInfo = this.data.teamInfo
     const openid = await app.ensureOpenId()
     let items = []
@@ -64,45 +67,47 @@ Page({
         }
       })
       items = res.items || []
+
+      const reminderDays = app.getReminderDays()
+      // 计算每个物品的剩余天数和状态
+      items = items.map(item => {
+        const daysRemaining = app.calculateDaysRemaining(item.expireDate)
+        const statusInfo = app.getStatusInfo(daysRemaining, reminderDays)
+        return {
+          ...item,
+          daysRemaining,
+          statusText: statusInfo.text,
+          statusColor: statusInfo.color,
+          statusBgColor: statusInfo.bgColor
+        }
+      })
+
+      // 计算统计数据
+      const totalCount = items.length
+      const expiredCount = items.filter(item => item.daysRemaining < 0).length
+      const warningCount = items.filter(item => item.daysRemaining >= 0 && item.daysRemaining <= reminderDays).length
+
+      // 筛选
+      items = this.filterItems(items, reminderDays)
+      
+      // 排序（按过期日期升序，最先过期的在前面）
+      items.sort((a, b) => a.daysRemaining - b.daysRemaining)
+
+      this.setData({
+        items,
+        isEmpty: items.length === 0,
+        totalCount,
+        expiredCount,
+        warningCount,
+        reminderDays
+      })
     } catch (err) {
       console.error('加载云端物品失败', err)
       wx.showToast({ title: '加载失败，请稍后重试', icon: 'none' })
+    } finally {
+      this._loadingItems = false
+      this.setData({ loading: false })
     }
-    const reminderDays = app.getReminderDays()
-    
-    // 计算每个物品的剩余天数和状态
-    items = items.map(item => {
-      const daysRemaining = app.calculateDaysRemaining(item.expireDate)
-      const statusInfo = app.getStatusInfo(daysRemaining, reminderDays)
-      return {
-        ...item,
-        daysRemaining,
-        statusText: statusInfo.text,
-        statusColor: statusInfo.color,
-        statusBgColor: statusInfo.bgColor
-      }
-    })
-
-    // 计算统计数据
-    const totalCount = items.length
-    const expiredCount = items.filter(item => item.daysRemaining < 0).length
-    const warningCount = items.filter(item => item.daysRemaining >= 0 && item.daysRemaining <= reminderDays).length
-
-    // 筛选
-    items = this.filterItems(items, reminderDays)
-    
-    // 排序（按过期日期升序，最先过期的在前面）
-    items.sort((a, b) => a.daysRemaining - b.daysRemaining)
-
-    this.setData({
-      items,
-      isEmpty: items.length === 0,
-      totalCount,
-      expiredCount,
-      warningCount,
-      reminderDays,
-      loading: false
-    })
   },
 
   // 筛选物品

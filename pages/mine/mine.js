@@ -1,5 +1,16 @@
 const app = getApp()
-const ENV_ID = 'cloudbase-3gw3eh5if5bb010a'
+const { request } = require('../../utils/request')
+
+function mapTeam(apiTeam = {}) {
+  return {
+    id: apiTeam.id || apiTeam._id,
+    _id: apiTeam.id || apiTeam._id, // 兼容旧字段
+    name: apiTeam.name || '我的小组',
+    inviteCode: apiTeam.invite_code || apiTeam.inviteCode,
+    ownerOpenId: apiTeam.owner_openid || apiTeam.ownerOpenId,
+    memberOpenIds: apiTeam.member_openids || apiTeam.memberOpenIds || []
+  }
+}
 
 Page({
   data: {
@@ -36,15 +47,22 @@ Page({
 
   // 读取本地提醒设置
   loadSettings() {
-    const reminderDays = app.getReminderDays()
-    this.setData({ reminderDays })
+    if (typeof app.syncReminderSettings === 'function') {
+      app.syncReminderSettings().then((days) => {
+        this.setData({ reminderDays: days })
+      })
+    } else {
+      const reminderDays = app.getReminderDays()
+      this.setData({ reminderDays })
+    }
   },
 
   // 加载团队信息（本地缓存）
   loadTeam() {
     const teamInfo = wx.getStorageSync('teamInfo') || null
-    if (teamInfo && teamInfo._id) {
-      this.fetchTeamDetail(teamInfo._id)
+    const id = teamInfo && (teamInfo.id || teamInfo._id)
+    if (id) {
+      this.fetchTeamDetail(id)
     } else {
       this.setData({ teamInfo: null, teamMembers: [] })
     }
@@ -52,15 +70,12 @@ Page({
 
   async loadTeams() {
     try {
-      const openid = await this.ensureOpenId()
-      const db = wx.cloud.database()
-      const createdRes = await db.collection('teams').where({ ownerOpenId: openid }).get()
-      const joinedRes = await db.collection('teams').where({
-        memberOpenIds: db.command.elemMatch(openid)
-      }).get()
+      await this.ensureOpenId()
+      const createdRes = await request({ url: '/teams?type=created', method: 'GET' })
+      const joinedRes = await request({ url: '/teams?type=joined', method: 'GET' })
       this.setData({
-        createdTeams: createdRes.data || [],
-        joinedTeams: joinedRes.data || []
+        createdTeams: (createdRes.teams || []).map(mapTeam),
+        joinedTeams: (joinedRes.teams || []).map(mapTeam)
       })
     } catch (err) {
       console.error('加载团队列表失败', err)
@@ -71,24 +86,14 @@ Page({
     if (!teamId) return
     this.setData({ loadingTeam: true })
     try {
-      const db = wx.cloud.database()
-      const res = await db.collection('teams').doc(teamId).get()
-      const team = res.data
-      if (team) {
-        const teamInfo = {
-          _id: team._id,
-          name: team.name || '我的小组',
-          inviteCode: team.inviteCode,
-          ownerOpenId: team.ownerOpenId,
-          memberOpenIds: team.memberOpenIds || []
-        }
-        wx.setStorageSync('teamInfo', teamInfo)
-        this.setData({
-          teamInfo,
-          teamMembers: team.memberOpenIds || [],
-          teamNameInput: teamInfo.name
-        })
-      }
+      const res = await request({ url: `/teams/${teamId}`, method: 'GET' })
+      const team = mapTeam(res.team)
+      wx.setStorageSync('teamInfo', team)
+      this.setData({
+        teamInfo: team,
+        teamMembers: team.memberOpenIds || [],
+        teamNameInput: team.name
+      })
     } catch (err) {
       console.error('获取团队信息失败', err)
       wx.showToast({ title: '加载团队失败', icon: 'none' })
@@ -110,7 +115,8 @@ Page({
     const team = list.find(t => t._id === id)
     if (!team) return
     const teamInfo = {
-      _id: team._id,
+      id: team.id || team._id,
+      _id: team.id || team._id,
       name: team.name,
       inviteCode: team.inviteCode,
       ownerOpenId: team.ownerOpenId,
@@ -141,11 +147,28 @@ Page({
   // 保存提醒设置
   saveSettings() {
     const { reminderDays } = this.data
-    wx.setStorageSync('reminderSettings', { reminderDays })
-    wx.showToast({
-      title: '提醒设置已更新',
-      icon: 'success'
-    })
+    const days = Number(reminderDays) || 3
+    wx.showLoading({ title: '保存中', mask: true })
+    const doSave = async () => {
+      if (typeof app.updateReminderSettings === 'function') {
+        await app.updateReminderSettings(days)
+      } else {
+        wx.setStorageSync('reminderSettings', { reminderDays: days })
+      }
+    }
+    doSave()
+      .then(() => {
+        this.setData({ reminderDays: days })
+        wx.showToast({
+          title: '提醒设置已更新',
+          icon: 'success'
+        })
+      })
+      .catch((err) => {
+        console.error('保存提醒设置失败', err)
+        wx.showToast({ title: '保存失败', icon: 'none' })
+      })
+      .finally(() => wx.hideLoading())
   },
 
   // 预览提醒效果
@@ -243,48 +266,12 @@ Page({
 
   // 测试发送订阅消息（示例，需云函数/服务端实现）
   sendTestMessage() {
-    const { reminderDays, subscribeTemplateIds } = this.data
-    const templateId = subscribeTemplateIds[0]
-
-    // 如果已接入云开发，可直接调用云函数 sendReminderTest
-    if (wx.cloud && typeof wx.cloud.callFunction === 'function') {
-      wx.cloud.callFunction({
-        name: 'sendReminderTest',
-        config: { env: ENV_ID },
-        data: {
-          templateId,
-          page: 'pages/index/index',
-          // 请根据模板字段自行调整字段名和值
-          data: {
-            thing1: { value: '临期提醒测试' },
-            date2: { value: '2025-12-31' },
-            thing3: { value: `到期前${reminderDays}天提醒` },
-            thing4: { value: '请及时处理' }
-          }
-        },
-        success: () => {
-          wx.showToast({ title: '已触发测试推送', icon: 'success' })
-          this.sending = false
-        },
-        fail: (err) => {
-          console.error('发送失败', err)
-          wx.showModal({
-            title: '发送失败',
-            content: '请检查云函数 sendReminderTest 是否已部署并匹配模板字段',
-            showCancel: false
-          })
-          this.sending = false
-        }
-      })
-    } else {
-      // 未配置云开发时给出指引
-      wx.showModal({
-        title: '缺少发送通道',
-        content: '需在云函数或服务端调用订阅消息发送接口。\n建议：\n1）开通云开发，在云函数中实现 sendReminderTest；\n2）服务端调用 https://api.weixin.qq.com/cgi-bin/message/subscribe/send',
-        showCancel: false
-      })
-      this.sending = false
-    }
+    wx.showModal({
+      title: '缺少发送通道',
+      content: '已切换本地后端，订阅消息请在服务端调用微信订阅消息发送接口或自行实现云函数。',
+      showCancel: false
+    })
+    this.sending = false
   },
 
   // 创建团队
@@ -293,19 +280,17 @@ Page({
     this.setData({ creating: true })
     try {
       const openid = await this.ensureOpenId()
-      const db = wx.cloud.database()
       const inviteCode = this.generateCode()
       const name = (this.data.teamNameInput || '我的小组').trim() || '我的小组'
-      const res = await db.collection('teams').add({
-        data: {
-          name,
-          ownerOpenId: openid,
-          memberOpenIds: [openid],
-          inviteCode,
-          createdAt: new Date()
-        }
+      const res = await request({
+        url: '/teams',
+        method: 'POST',
+        data: { name, inviteCode }
       })
-      const teamInfo = { _id: res._id, name, inviteCode, ownerOpenId: openid, memberOpenIds: [openid] }
+      const teamInfo = mapTeam(res)
+      if (!teamInfo.memberOpenIds.includes(openid)) {
+        teamInfo.memberOpenIds.push(openid)
+      }
       wx.setStorageSync('teamInfo', teamInfo)
       this.setData({ teamInfo, teamMembers: [openid] })
       wx.showToast({ title: '创建成功', icon: 'success' })
@@ -329,40 +314,12 @@ Page({
     this.setData({ joining: true })
     try {
       const openid = await this.ensureOpenId()
-      const db = wx.cloud.database()
-      const _ = db.command
-      const res = await db.collection('teams').where({ inviteCode: code }).get()
-      if (!res.data || !res.data.length) {
-        wx.showToast({ title: '邀请码无效', icon: 'none' })
-        return
-      }
-      const team = res.data[0]
-      // 已在团队或自身是创建者
-      if (team.ownerOpenId === openid || (team.memberOpenIds || []).indexOf(openid) > -1) {
-        const teamInfo = {
-          _id: team._id,
-          name: team.name,
-          inviteCode: team.inviteCode,
-          ownerOpenId: team.ownerOpenId,
-          memberOpenIds: team.memberOpenIds || []
-        }
-        wx.setStorageSync('teamInfo', teamInfo)
-        this.setData({ teamInfo, teamMembers: teamInfo.memberOpenIds || [] })
-        wx.showToast({ title: '你已在该团队', icon: 'none' })
-        return
-      }
-      await db.collection('teams').doc(team._id).update({
-        data: {
-          memberOpenIds: _.addToSet(openid)
-        }
+      const team = await request({
+        url: '/teams/join',
+        method: 'POST',
+        data: { inviteCode: code }
       })
-      const teamInfo = {
-        _id: team._id,
-        name: team.name,
-        inviteCode: team.inviteCode,
-        ownerOpenId: team.ownerOpenId,
-        memberOpenIds: team.memberOpenIds || []
-      }
+      const teamInfo = mapTeam(team)
       if (teamInfo.memberOpenIds.indexOf(openid) === -1) {
         teamInfo.memberOpenIds.push(openid)
       }
@@ -402,10 +359,10 @@ Page({
       success: async (res) => {
         if (!res.confirm) return
         try {
-          const db = wx.cloud.database()
-          const _ = db.command
-          await db.collection('teams').doc(teamInfo._id).update({
-            data: { memberOpenIds: _.pull(target) }
+          await request({
+            url: `/teams/${teamInfo._id}/remove-member`,
+            method: 'PATCH',
+            data: { memberOpenId: target }
           })
           const newMembers = (teamInfo.memberOpenIds || []).filter(m => m !== target)
           const latest = { ...teamInfo, memberOpenIds: newMembers }
@@ -462,11 +419,12 @@ Page({
     }
     this.setData({ renaming: true })
     try {
-      const db = wx.cloud.database()
-      await db.collection('teams').doc(teamInfo._id).update({
+      const updated = await request({
+        url: `/teams/${teamInfo._id}/rename`,
+        method: 'PATCH',
         data: { name }
       })
-      const latest = { ...teamInfo, name }
+      const latest = mapTeam(updated)
       wx.setStorageSync('teamInfo', latest)
       this.setData({ teamInfo: latest })
       wx.showToast({ title: '已更新名称', icon: 'success' })
@@ -494,11 +452,11 @@ Page({
     this.setData({ regenerating: true })
     try {
       const inviteCode = this.generateCode()
-      const db = wx.cloud.database()
-      await db.collection('teams').doc(teamInfo._id).update({
-        data: { inviteCode }
+      const updated = await request({
+        url: `/teams/${teamInfo._id}/regenerate-invite`,
+        method: 'PATCH'
       })
-      const latest = { ...teamInfo, inviteCode }
+      const latest = { ...mapTeam(updated), inviteCode: updated.invite_code || inviteCode }
       wx.setStorageSync('teamInfo', latest)
       this.setData({ teamInfo: latest })
       wx.showToast({ title: '已重置邀请码', icon: 'success' })
@@ -525,12 +483,9 @@ Page({
     }
     this.setData({ leaving: true })
     try {
-      const db = wx.cloud.database()
-      const _ = db.command
-      await db.collection('teams').doc(teamInfo._id).update({
-        data: {
-          memberOpenIds: _.pull(openid)
-        }
+      await request({
+        url: `/teams/${teamInfo._id}/leave`,
+        method: 'PATCH'
       })
       wx.removeStorageSync('teamInfo')
       this.setData({ teamInfo: null, teamMembers: [] })

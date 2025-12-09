@@ -1,5 +1,5 @@
 // app.js
-const { BASE_URL } = require('./utils/config')
+const { request, BASE_URL } = require('./utils/request')
 
 App({
   async onLaunch() {
@@ -10,6 +10,8 @@ App({
     }
     // 登录获取 token/openid
     await this.ensureToken()
+    // 同步后端提醒设置
+    await this.syncReminderSettings()
     // 可选：检查过期物品（如需改为后端提醒，可移除）
     this.checkExpiredItems()
   },
@@ -130,6 +132,31 @@ App({
     const settings = wx.getStorageSync('reminderSettings') || {}
     const reminderDays = Number(settings.reminderDays)
     return Number.isFinite(reminderDays) && reminderDays > 0 ? reminderDays : 3
+  },
+
+  // 与后端同步提醒天数（获取并写入本地）
+  async syncReminderSettings() {
+    try {
+      const data = await request({ url: '/settings/me', method: 'GET' })
+      if (data && typeof data.reminderDays === 'number') {
+        wx.setStorageSync('reminderSettings', { reminderDays: data.reminderDays })
+        return data.reminderDays
+      }
+    } catch (err) {
+      console.warn('同步提醒设置失败', err)
+    }
+    return this.getReminderDays()
+  },
+
+  // 更新后端提醒设置并写入本地
+  async updateReminderSettings(reminderDays) {
+    await request({
+      url: '/settings/me',
+      method: 'PUT',
+      data: { reminderDays: Number(reminderDays) || 3 }
+    })
+    wx.setStorageSync('reminderSettings', { reminderDays })
+    return reminderDays
   },
 
   // 获取状态信息

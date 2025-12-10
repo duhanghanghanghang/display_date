@@ -1,15 +1,11 @@
 <!-- pages/index/index.wxml -->
-<view class="container">
+<view class="container" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
   <!-- 无团队提示 -->
   <view class="no-team" wx:if="{{!hasTeam}}">
-    <text>请先在“我的”创建或加入一个小组，数据才会同步。</text>
+    <text>如需要多人同步，请在“团队”中操作。</text>
   </view>
   <!-- 头部统计区域 -->
   <view class="header-card">
-    <view class="header-title">
-      <text class="title-icon">📦</text>
-      <text class="title-text">物品管理</text>
-    </view>
     <view class="stats-row">
       <view class="stat-item" bindtap="onFilterChange" data-type="all">
         <text class="stat-number">{{totalCount}}</text>
@@ -55,7 +51,7 @@
       wx:key="_id"
       bindtap="editItem"
       bindlongpress="showActionSheet"
-      data-id="{{item._id}}"
+      data-id="{{item._id || item.id}}"
     >
       <view class="item-left">
         <image 
@@ -71,7 +67,7 @@
           <view class="item-name">{{item.name}}</view>
           <view class="item-date">
             <text class="date-icon">📅</text>
-            <text>过期：{{item.expireDate}}</text>
+          <text>过期：{{item.expireDisplay || item.expireDate || '无日期'}}</text>
           </view>
         </view>
       </view>
@@ -84,10 +80,6 @@
         <view class="status-tag" style="background-color: {{item.statusBgColor}}; color: {{item.statusColor}};">
           {{item.statusText}}
         </view>
-      </view>
-      <!-- 删除按钮 -->
-      <view class="delete-btn" catchtap="deleteItem" data-id="{{item._id}}">
-        <text>🗑️</text>
       </view>
     </view>
   </view>

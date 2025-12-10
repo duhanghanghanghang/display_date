@@ -137,6 +137,20 @@ Page({
       const inviteCode = this.generateCode()
       const name = (this.data.teamNameInput || '我的小组').trim() || '我的小组'
       const quota = this.data.maxQuota
+      // 提醒：一个人只能有一个团队，创建将解散/退出其他团队
+      const confirmRes = await new Promise((resolve) => {
+        wx.showModal({
+          title: '提示',
+          content: '创建新团队将解散/退出你所在的其他团队，确认创建？',
+          confirmText: '继续',
+          cancelText: '取消',
+          success: resolve
+        })
+      })
+      if (!confirmRes || !confirmRes.confirm) {
+        this.setData({ creating: false })
+        return
+      }
       const res = await request({
         url: '/teams',
         method: 'POST',
@@ -162,6 +176,20 @@ Page({
       wx.showToast({ title: '请输入邀请码', icon: 'none' })
       return
     }
+    // 提醒：加入他人团队将解散/退出你当前拥有或加入的团队
+    const confirmRes = await new Promise((resolve) => {
+      wx.showModal({
+        title: '提示',
+        content: '加入他人团队将解散/退出你当前的团队，确认加入？',
+        confirmText: '继续',
+        cancelText: '取消',
+        success: resolve
+      })
+    })
+    if (!confirmRes || !confirmRes.confirm) {
+      return
+    }
+
     this.setData({ joining: true })
     try {
       const openid = await this.ensureOpenId()

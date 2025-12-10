@@ -163,6 +163,8 @@ Page({
           title: '提醒设置已更新',
           icon: 'success'
         })
+        // 保存后立即检查是否有需要立即提醒的物品
+        this.checkImmediateNotify(days)
       })
       .catch((err) => {
         console.error('保存提醒设置失败', err)
@@ -251,7 +253,7 @@ Page({
           this.sending = false
           return
         }
-        this.sendTestMessage()
+        this.sendSubscribe()
       },
       fail: (err) => {
         console.error('订阅失败', err)
@@ -264,14 +266,98 @@ Page({
     })
   },
 
-  // 测试发送订阅消息（示例，需云函数/服务端实现）
+  // 调用后端发送订阅消息（示例字段需与模板匹配）
+  async sendSubscribe() {
+    const { subscribeTemplateIds } = this.data
+    if (!Array.isArray(subscribeTemplateIds) || subscribeTemplateIds.length === 0) {
+      wx.showToast({ title: '请先配置模板ID', icon: 'none' })
+      return
+    }
+    const templateId = subscribeTemplateIds[0]
+    // 模板字段：thing1（活动主题/物品名）、date3（到期时间）
+    const payload = {
+      templateId,
+      page: 'pages/index/index',
+      miniprogramState: 'formal',
+      data: {
+        thing1: { value: '样例物品名称' }, // 物品名或活动主题
+        date3: { value: '2025-12-31 18:00' } // 过期/截止时间
+      }
+    }
+    try {
+      await request({
+        url: '/wechat/subscribe/send',
+        method: 'POST',
+        data: payload
+      })
+      wx.showToast({ title: '已发送', icon: 'success' })
+    } catch (err) {
+      console.error('发送订阅失败', err)
+      wx.showToast({ title: '发送失败', icon: 'none' })
+    } finally {
+      this.sending = false
+    }
+  },
+
+  // 单独测试发送
   sendTestMessage() {
-    wx.showModal({
-      title: '缺少发送通道',
-      content: '已切换本地后端，订阅消息请在服务端调用微信订阅消息发送接口或自行实现云函数。',
-      showCancel: false
-    })
-    this.sending = false
+    this.sendSubscribe()
+  },
+
+  // 保存提醒后，立即检查需要提醒的物品并询问是否推送
+  async checkImmediateNotify(reminderDays) {
+    try {
+      const res = await request({
+        url: '/items',
+        method: 'GET',
+        data: { teamId: '' }
+      })
+      const items = res.items || []
+      if (!items.length) return
+      const due = items
+        .map((it) => {
+          const expireDate = it.expireDate || it.expire_date || ''
+          const daysRemaining = app.calculateDaysRemaining(expireDate)
+          return { ...it, expireDate, daysRemaining, id: it.id || it._id }
+        })
+        .filter((it) => it.daysRemaining <= reminderDays)
+      if (!due.length) return
+
+      const preview = due
+        .slice(0, 10)
+        .map((it) => `${it.name || '未命名'}（${it.expireDate || '无日期'}）`)
+        .join('\n')
+      const content =
+        `有 ${due.length} 个物品需要立即提醒：\n` +
+        preview +
+        (due.length > 10 ? '\n...' : '') +
+        '\n是否发送微信通知？'
+
+      wx.showModal({
+        title: '立即提醒',
+        content,
+        confirmText: '发送微信',
+        cancelText: '仅标记',
+        success: async (res) => {
+          if (res.cancel && res.confirm) return
+          const send = !!res.confirm
+          const ids = due.map((d) => d.id).filter(Boolean)
+          try {
+            await request({
+              url: '/items/notify',
+              method: 'POST',
+              data: { item_ids: ids, send }
+            })
+            wx.showToast({ title: send ? '已通知' : '已标记', icon: 'success' })
+          } catch (err) {
+            console.error('立即提醒失败', err)
+            wx.showToast({ title: '提醒失败', icon: 'none' })
+          }
+        }
+      })
+    } catch (err) {
+      console.warn('检查立即提醒失败', err)
+    }
   },
 
   // 创建团队

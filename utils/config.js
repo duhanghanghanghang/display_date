@@ -1,7 +1,9 @@
-// 本地后端基地址（改为当前局域网 IP，便于真机访问）
-const BASE_URL = 'http://172.20.10.3:8000'
+// 统一从 config/env.js 读取环境配置
+const { BASE_URL, ENV, ENV_MAP } = require('../config/env')
 
 module.exports = {
-  BASE_URL
+  BASE_URL,
+  ENV,
+  ENV_MAP
 }
 

@@ -40,7 +40,8 @@ Page({
     // 统计数据
     totalCount: 0,
     expiredCount: 0,
-    warningCount: 0
+    warningCount: 0,
+    touchStartX: 0
   },
 
   async onLoad() {
@@ -64,17 +65,13 @@ Page({
   async initTeam() {
     try {
       const openid = await app.ensureOpenId()
-      let teamInfo = wx.getStorageSync('teamInfo') || null
-      if (!teamInfo || !teamInfo._id) {
-        teamInfo = await this.ensurePersonalTeam()
-      }
       this.setData({
-        teamInfo,
-        hasTeam: !!teamInfo,
+        teamInfo: null,
+        hasTeam: false,
         userOpenId: openid,
         loginReady: true
       })
-      return teamInfo
+      return null
     } catch (err) {
       console.error('初始化个人空间失败', err)
       wx.showToast({ title: '登录失败，请稍后重试', icon: 'none' })
@@ -90,34 +87,31 @@ Page({
     this._loadingItems = true
     this.setData({ loading: true })
 
-    let teamInfo = this.data.teamInfo
     const openid = await app.ensureOpenId()
     let items = []
-    try {
-      if (!teamInfo || !teamInfo._id) {
-        teamInfo = await this.ensurePersonalTeam()
-        this.setData({ teamInfo, hasTeam: !!teamInfo })
-      }
-    } catch (err) {
-      console.warn('创建/获取个人空间失败，继续使用本地数据', err)
-    }
     try {
       const res = await request({
         url: '/items',
         method: 'GET',
-        data: {
-          teamId: teamInfo && teamInfo._id ? teamInfo._id : ''
-        }
+        data: { teamId: '' } // 个人空间
       })
       items = res.items || []
 
       const reminderDays = app.getReminderDays()
       // 计算每个物品的剩余天数和状态
       items = items.map(item => {
-        const daysRemaining = app.calculateDaysRemaining(item.expireDate)
+        const id = item.id || item._id || ''
+        const rawExpire = item.expireDate || item.expire_date || ''
+        const expireDate = normalizeDate(rawExpire)
+        const daysRemaining = expireDate ? app.calculateDaysRemaining(expireDate) : null
         const statusInfo = app.getStatusInfo(daysRemaining, reminderDays)
         return {
           ...item,
+          id,
+          _id: id,
+          ...item,
+          expireDate,
+          expireDisplay: expireDate || '无日期',
           daysRemaining,
           statusText: statusInfo.text,
           statusColor: statusInfo.color,
@@ -147,6 +141,7 @@ Page({
     } catch (err) {
       console.error('加载云端物品失败', err)
       wx.showToast({ title: '加载失败，请稍后重试', icon: 'none' })
+      this.setData({ items: [], isEmpty: true })
     } finally {
       this._loadingItems = false
       this.setData({ loading: false })
@@ -198,6 +193,10 @@ Page({
   // 编辑物品
   editItem(e) {
     const id = e.currentTarget.dataset.id
+    if (!id) {
+      wx.showToast({ title: '数据异常，请重试', icon: 'none' })
+      return
+    }
     wx.navigateTo({
       url: `/pages/add/add?id=${id}`
     })
@@ -208,7 +207,12 @@ Page({
     if (this.deleting) return
     this.deleting = true
     const id = e.currentTarget.dataset.id
-    const item = this.data.items.find(i => i._id === id)
+    const item = this.data.items.find(i => i._id === id || i.id === id)
+    if (!item) {
+      this.deleting = false
+      wx.showToast({ title: '数据异常，请重试', icon: 'none' })
+      return
+    }
     
     wx.showModal({
       title: '确认删除',
@@ -241,7 +245,11 @@ Page({
   // 长按显示操作菜单
   showActionSheet(e) {
     const id = e.currentTarget.dataset.id
-    const item = this.data.items.find(i => i._id === id)
+    const item = this.data.items.find(i => i._id === id || i.id === id)
+    if (!item) {
+      wx.showToast({ title: '数据异常，请重试', icon: 'none' })
+      return
+    }
     
     wx.showActionSheet({
       itemList: ['编辑', '删除'],
@@ -257,37 +265,36 @@ Page({
         }
       }
     })
+  },
+
+  // 手势滑动切换筛选标签（右滑到下一个，左滑回上一个）
+  onTouchStart(e) {
+    this.setData({ touchStartX: e.changedTouches[0].pageX })
+  },
+  onTouchEnd(e) {
+    const endX = e.changedTouches[0].pageX
+    const deltaX = endX - this.data.touchStartX
+    const threshold = 50
+    if (Math.abs(deltaX) < threshold) return
+    const order = ['all', 'expired', 'warning', 'normal']
+    const current = this.data.filterType
+    const idx = order.indexOf(current)
+    if (deltaX > 0 && idx < order.length - 1) {
+      const next = order[idx + 1]
+      this.setData({ filterType: next })
+      this.loadItems()
+    } else if (deltaX < 0 && idx > 0) {
+      const prev = order[idx - 1]
+      this.setData({ filterType: prev })
+      this.loadItems()
+    }
   }
 })
 
-// 确保个人团队（无团队时创建一个）
-Page.prototype.ensurePersonalTeam = async function () {
-  const cached = wx.getStorageSync('teamInfo')
-  if (cached && cached._id) {
-    this.setData({ teamInfo: cached, hasTeam: true })
-    return cached
-  }
-  try {
-    await app.ensureOpenId()
-    const createdRes = await request({ url: '/teams?type=created', method: 'GET' })
-    const existed = (createdRes.teams || []).map(mapTeam).find(t => t.name === '我的团队')
-    if (existed) {
-      wx.setStorageSync('teamInfo', existed)
-      this.setData({ teamInfo: existed, hasTeam: true })
-      return existed
-    }
-    const newTeam = await request({
-      url: '/teams',
-      method: 'POST',
-      data: { name: '我的团队' }
-    })
-    const teamInfo = mapTeam(newTeam)
-    wx.setStorageSync('teamInfo', teamInfo)
-    this.setData({ teamInfo, hasTeam: true })
-    return teamInfo
-  } catch (err) {
-    console.error('创建个人团队失败', err)
-    wx.showToast({ title: '初始化团队失败', icon: 'none' })
-    throw err
-  }
+function normalizeDate(expireDate) {
+  if (!expireDate) return ''
+  // 仅保留年月日
+  const m = expireDate.match(/^(\d{4}-\d{2}-\d{2})/)
+  if (m && m[1]) return m[1]
+  return expireDate
 }

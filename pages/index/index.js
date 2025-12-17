@@ -9,7 +9,8 @@ function normalizeItem(apiItem = {}) {
     id,
     _id: id,
     expireDate: apiItem.expireDate || apiItem.expire_date || '',
-    productImage: apiItem.productImage || apiItem.product_image || ''
+    productImage: apiItem.productImage || apiItem.product_image || '',
+    quantity: apiItem.quantity || 1
   }
 }
 
@@ -41,7 +42,19 @@ Page({
     totalCount: 0,
     expiredCount: 0,
     warningCount: 0,
-    touchStartX: 0
+    touchStartX: 0,
+    // 编辑模态框
+    showEditModal: false,
+    editingItem: null,
+    editForm: {
+      id: '',
+      name: '',
+      category: '',
+      expireDate: '',
+      note: '',
+      quantity: 1
+    },
+    categories: ['食品', '药品', '化妆品', '调味品', '证件', '饮料', '零食', '其他']
   },
 
   async onLoad() {
@@ -105,6 +118,7 @@ Page({
         const expireDate = normalizeDate(rawExpire)
         const daysRemaining = expireDate ? app.calculateDaysRemaining(expireDate) : null
         const statusInfo = app.getStatusInfo(daysRemaining, reminderDays)
+        const pushed = !!item.notifiedAt
         return {
           ...item,
           id,
@@ -112,6 +126,7 @@ Page({
           ...item,
           expireDate,
           expireDisplay: expireDate || '无日期',
+          pushStatus: pushed ? '已推送' : '未推送',
           daysRemaining,
           statusText: statusInfo.text,
           statusColor: statusInfo.color,
@@ -190,15 +205,148 @@ Page({
     })
   },
 
-  // 编辑物品
+  // 编辑物品 - 弹出模态框
   editItem(e) {
     const id = e.currentTarget.dataset.id
-    if (!id) {
+    const item = this.data.items.find(i => i._id === id || i.id === id)
+    
+    if (!item) {
       wx.showToast({ title: '数据异常，请重试', icon: 'none' })
       return
     }
-    wx.navigateTo({
-      url: `/pages/add/add?id=${id}`
+    
+    // 设置编辑表单数据
+    this.setData({
+      showEditModal: true,
+      editingItem: item,
+      editForm: {
+        id: item.id || item._id,
+        name: item.name,
+        category: item.category || '',
+        expireDate: item.expireDate || item.expire_date || '',
+        note: item.note || '',
+        quantity: item.quantity || 1
+      }
+    })
+  },
+
+  // 关闭编辑模态框
+  closeEditModal() {
+    this.setData({
+      showEditModal: false,
+      editingItem: null,
+      editForm: {
+        id: '',
+        name: '',
+        category: '',
+        expireDate: '',
+        note: '',
+        quantity: 1
+      }
+    })
+  },
+
+  // 编辑表单输入
+  onEditNameInput(e) {
+    this.setData({ 'editForm.name': e.detail.value })
+  },
+  onEditCategoryInput(e) {
+    this.setData({ 'editForm.category': e.detail.value })
+  },
+  onEditNoteInput(e) {
+    this.setData({ 'editForm.note': e.detail.value })
+  },
+  onEditDateChange(e) {
+    this.setData({ 'editForm.expireDate': e.detail.value })
+  },
+  onEditQuantityInput(e) {
+    let value = parseInt(e.detail.value) || 1
+    if (value < 1) value = 1
+    if (value > 999) value = 999
+    this.setData({ 'editForm.quantity': value })
+  },
+  adjustEditQuantity(e) {
+    const action = e.currentTarget.dataset.action
+    let quantity = this.data.editForm.quantity
+    if (action === 'minus' && quantity > 1) {
+      quantity--
+    } else if (action === 'plus' && quantity < 999) {
+      quantity++
+    }
+    this.setData({ 'editForm.quantity': quantity })
+  },
+  selectEditCategory(e) {
+    const category = e.currentTarget.dataset.category
+    this.setData({ 'editForm.category': category })
+  },
+
+  // 保存编辑
+  async saveEdit() {
+    const { editForm } = this.data
+    
+    if (!editForm.name.trim()) {
+      wx.showToast({ title: '请输入物品名称', icon: 'none' })
+      return
+    }
+    
+    if (!editForm.expireDate) {
+      wx.showToast({ title: '请选择过期日期', icon: 'none' })
+      return
+    }
+    
+    wx.showLoading({ title: '保存中...', mask: true })
+    
+    try {
+      await request({
+        url: `/items/${editForm.id}`,
+        method: 'PATCH',
+        data: {
+          name: editForm.name.trim(),
+          category: editForm.category.trim(),
+          expire_date: editForm.expireDate,
+          note: editForm.note.trim(),
+          quantity: editForm.quantity || 1
+        }
+      })
+      
+      wx.showToast({ title: '保存成功', icon: 'success' })
+      this.closeEditModal()
+      this.loadItems() // 刷新列表
+    } catch (err) {
+      console.error('保存失败', err)
+      wx.showToast({ title: '保存失败', icon: 'none' })
+    } finally {
+      wx.hideLoading()
+    }
+  },
+
+  // 删除物品（从模态框）
+  async deleteFromModal() {
+    const { editForm, editingItem } = this.data
+    
+    wx.showModal({
+      title: '确认删除',
+      content: `确定要删除「${editingItem.name}」吗？`,
+      confirmColor: '#FF4444',
+      success: async (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: '删除中...', mask: true })
+          try {
+            await request({
+              url: `/items/${editForm.id}/delete`,
+              method: 'PATCH'
+            })
+            wx.showToast({ title: '删除成功', icon: 'success' })
+            this.closeEditModal()
+            this.loadItems()
+          } catch (err) {
+            console.error('删除失败', err)
+            wx.showToast({ title: '删除失败', icon: 'none' })
+          } finally {
+            wx.hideLoading()
+          }
+        }
+      }
     })
   },
 
@@ -279,13 +427,14 @@ Page({
     const order = ['all', 'expired', 'warning', 'normal']
     const current = this.data.filterType
     const idx = order.indexOf(current)
-    if (deltaX > 0 && idx < order.length - 1) {
-      const next = order[idx + 1]
-      this.setData({ filterType: next })
-      this.loadItems()
-    } else if (deltaX < 0 && idx > 0) {
+    // 主流交互：右滑切到前一个，左滑切到后一个
+    if (deltaX > 0 && idx > 0) {
       const prev = order[idx - 1]
       this.setData({ filterType: prev })
+      this.loadItems()
+    } else if (deltaX < 0 && idx < order.length - 1) {
+      const next = order[idx + 1]
+      this.setData({ filterType: next })
       this.loadItems()
     }
   }

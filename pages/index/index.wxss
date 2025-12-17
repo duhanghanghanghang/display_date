@@ -157,12 +157,38 @@
   overflow: hidden;
 }
 
+.item-header {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
+}
+
 .item-category-badge {
   display: inline-block;
   font-size: 22rpx;
   padding: 4rpx 16rpx;
   border-radius: 20rpx;
-  margin-bottom: 12rpx;
+}
+
+.item-quantity {
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+  color: #FFFFFF;
+  font-size: 22rpx;
+  font-weight: 600;
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+}
+
+.quantity-icon {
+  font-size: 20rpx;
+  margin-right: 2rpx;
+}
+
+.quantity-number {
+  font-size: 22rpx;
 }
 
 .item-name {
@@ -203,6 +229,11 @@
   font-size: 22rpx;
   padding: 6rpx 16rpx;
   border-radius: 16rpx;
+}
+
+.push-tag {
+  background: #f0f0f0;
+  color: #666;
 }
 
 .delete-btn {
@@ -251,4 +282,227 @@
   color: #999999;
 }
 
-/* 添加按钮 */
+/* 编辑模态框 */
+.edit-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+}
+
+.modal-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.modal-content {
+  position: absolute;
+  top: 10%;
+  left: 5%;
+  right: 5%;
+  bottom: 10%;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  display: flex;
+  flex-direction: column;
+  animation: modalSlideIn 0.3s ease-out;
+  box-sizing: border-box;
+}
+
+@keyframes modalSlideIn {
+  from {
+    top: 20%;
+    opacity: 0;
+  }
+  to {
+    top: 10%;
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.modal-close {
+  font-size: 48rpx;
+  color: #999999;
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-body {
+  flex: 1;
+  padding: 32rpx;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
+}
+
+.form-item {
+  margin-bottom: 32rpx;
+  box-sizing: border-box;
+}
+
+.form-label {
+  font-size: 28rpx;
+  color: #666666;
+  margin-bottom: 16rpx;
+}
+
+.required {
+  color: #FF4444;
+  margin-right: 4rpx;
+}
+
+.form-input {
+  display: block;
+  width: 100%;
+  height: 80rpx;
+  padding: 0 24rpx;
+  background: #F8F8F8;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+  color: #333333;
+  box-sizing: border-box;
+}
+
+.form-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 80rpx;
+  padding: 0 24rpx;
+  background: #F8F8F8;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+  color: #333333;
+  box-sizing: border-box;
+}
+
+.picker-arrow {
+  font-size: 36rpx;
+  color: #CCCCCC;
+}
+
+.form-textarea {
+  display: block;
+  width: 100%;
+  min-height: 120rpx;
+  padding: 20rpx 24rpx;
+  background: #F8F8F8;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+  color: #333333;
+  box-sizing: border-box;
+}
+
+.category-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.category-tag {
+  font-size: 24rpx;
+  color: #666666;
+  background: #F0F0F0;
+  padding: 10rpx 20rpx;
+  border-radius: 20rpx;
+}
+
+.category-tag.active {
+  background: linear-gradient(135deg, #4A90E2, #357ABD);
+  color: #FFFFFF;
+}
+
+.quantity-control {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.quantity-btn {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 30rpx;
+  background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-size: 28rpx;
+}
+
+.quantity-btn:active {
+  opacity: 0.8;
+}
+
+.quantity-input {
+  flex: 1;
+  height: 60rpx;
+  text-align: center;
+  background: #F8F8F8;
+  border-radius: 12rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.quantity-unit {
+  font-size: 28rpx;
+  color: #999999;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 16rpx;
+  padding: 24rpx 32rpx;
+  border-top: 1rpx solid #F0F0F0;
+}
+
+.modal-btn {
+  flex: 1;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 44rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+}
+
+.modal-btn-delete {
+  background: #FFFFFF;
+  color: #FF4444;
+  border: 2rpx solid #FF4444;
+}
+
+.modal-btn-save {
+  background: linear-gradient(135deg, #52C41A, #3FAD09);
+  color: #FFFFFF;
+}
+
+.modal-btn:active {
+  opacity: 0.8;
+}

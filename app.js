@@ -3,15 +3,21 @@ const { request, BASE_URL } = require('./utils/request')
 
 App({
   async onLaunch() {
+    // 清理旧的 token（已改用 openid 认证）
+    wx.removeStorageSync('token')
+    
     // 初始化提醒设置
     const reminderSettings = wx.getStorageSync('reminderSettings')
     if (!reminderSettings || typeof reminderSettings.reminderDays !== 'number') {
       wx.setStorageSync('reminderSettings', { reminderDays: 3 })
     }
-    // 登录获取 token/openid
-    await this.ensureToken()
+    
+    // 登录获取 openid
+    await this.ensureOpenId()
+    
     // 同步后端提醒设置
     await this.syncReminderSettings()
+    
     // 可选：检查过期物品（如需改为后端提醒，可移除）
     this.checkExpiredItems()
   },
@@ -20,10 +26,19 @@ App({
     openid: ''
   },
 
-  // 获取并缓存 token
-  async ensureToken() {
-    const cached = wx.getStorageSync('token')
-    if (cached) return cached
+  // 获取并缓存 openid（不再使用 token）
+  async ensureOpenId() {
+    // 先检查内存中的 openid
+    if (this.globalData.openid) return this.globalData.openid
+    
+    // 再检查本地缓存
+    const cached = wx.getStorageSync('openid')
+    if (cached) {
+      this.globalData.openid = cached
+      return cached
+    }
+    
+    // 都没有则调用微信登录
     return new Promise((resolve, reject) => {
       wx.login({
         success: (res) => {
@@ -31,21 +46,28 @@ App({
             wx.showToast({ title: '登录失败', icon: 'none' })
             return reject(new Error('no code'))
           }
+          
+          // 使用 code 换取 openid
           wx.request({
             url: `${BASE_URL}/login`,
             method: 'POST',
             data: { code: res.code },
             success: (resp) => {
               if (resp.statusCode >= 200 && resp.statusCode < 300) {
-                const { token, openid } = resp.data || {}
-                if (token) wx.setStorageSync('token', token)
+                const { openid } = resp.data || {}
                 if (openid) {
+                  // 保存 openid 到本地和内存
                   wx.setStorageSync('openid', openid)
                   this.globalData.openid = openid
+                  console.log('登录成功，openid:', openid)
+                  resolve(openid)
+                } else {
+                  wx.showToast({ title: '登录失败：未获取到 openid', icon: 'none' })
+                  reject(new Error('no openid'))
                 }
-                resolve(token)
               } else {
-                wx.showToast({ title: '登录失败', icon: 'none' })
+                const errorMsg = resp.data?.detail || '登录失败'
+                wx.showToast({ title: errorMsg, icon: 'none' })
                 reject(resp)
               }
             },
@@ -58,23 +80,6 @@ App({
         fail: reject
       })
     })
-  },
-
-  // 获取并缓存 openid
-  async ensureOpenId() {
-    if (this.globalData.openid) return this.globalData.openid
-    const cached = wx.getStorageSync('openid')
-    if (cached) {
-      this.globalData.openid = cached
-      return cached
-    }
-    await this.ensureToken()
-    const stored = wx.getStorageSync('openid')
-    if (stored) {
-      this.globalData.openid = stored
-      return stored
-    }
-    throw new Error('openid missing')
   },
 
   // 检查过期物品

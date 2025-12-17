@@ -3,10 +3,15 @@ const { BASE_URL } = require('./config')
 function request({ url, method = 'GET', data = {}, auth = true }) {
   return new Promise((resolve, reject) => {
     const headers = { 'Content-Type': 'application/json' }
+    
+    // 使用 openid 进行认证（不再使用 token）
     if (auth) {
-      const token = wx.getStorageSync('token')
-      if (token) headers['Authorization'] = `Bearer ${token}`
+      const openid = wx.getStorageSync('openid')
+      if (openid) {
+        headers['X-OpenId'] = openid
+      }
     }
+    
     wx.request({
       url: `${BASE_URL}${url}`,
       method,
@@ -17,7 +22,16 @@ function request({ url, method = 'GET', data = {}, auth = true }) {
           resolve(res.data)
         } else {
           console.error('request error', res)
-          wx.showToast({ title: res.data?.message || '请求失败', icon: 'none' })
+          const errorMsg = res.data?.detail || res.data?.message || '请求失败'
+          
+          // 如果是认证错误，清除本地 openid 并重新登录
+          if (res.statusCode === 401 || res.statusCode === 403) {
+            wx.removeStorageSync('openid')
+            wx.showToast({ title: '登录已过期，请重新登录', icon: 'none' })
+          } else {
+            wx.showToast({ title: errorMsg, icon: 'none' })
+          }
+          
           reject(res)
         }
       },

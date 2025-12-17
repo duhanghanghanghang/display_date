@@ -289,4 +289,64 @@
   color: #D48806;
 }
 
+/* 备案信息 */
+.beian-container {
+  margin-top: 40rpx;
+  padding: 32rpx 24rpx;
+  text-align: center;
+}
+
+.beian-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  padding: 20rpx;
+  background: #F8F9FA;
+  border-radius: 12rpx;
+  margin-bottom: 12rpx;
+}
+
+.beian-text {
+  font-size: 26rpx;
+  color: #333333;
+  font-weight: 500;
+}
+
+.beian-hint {
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.beian-tips {
+  font-size: 20rpx;
+  color: #AAAAAA;
+  line-height: 1.6;
+  padding: 0 20rpx;
+}
+
+/* 通用按钮样式 */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 80rpx;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #4A90E2, #357ABD);
+  color: #FFFFFF;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #52C41A, #3FAD09);
+  color: #FFFFFF;
+}
+
+.btn:active {
+  opacity: 0.8;
+}
 

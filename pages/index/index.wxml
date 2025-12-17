@@ -49,9 +49,8 @@
       class="item-card" 
       wx:for="{{items}}" 
       wx:key="_id"
-      bindtap="editItem"
-      bindlongpress="showActionSheet"
-      data-id="{{item._id || item.id}}"
+      catchtap="editItem"
+      data-id="{{item.id}}"
     >
       <view class="item-left">
         <image 
@@ -61,8 +60,14 @@
           wx:if="{{item.productImage}}"
         />
         <view class="item-content">
+          <view class="item-header">
           <view class="item-category-badge" style="background-color: {{item.statusBgColor}}; color: {{item.statusColor}};">
             {{item.category || '未分类'}}
+            </view>
+            <view class="item-quantity" wx:if="{{item.quantity && item.quantity > 1}}">
+              <text class="quantity-icon">×</text>
+              <text class="quantity-number">{{item.quantity}}</text>
+            </view>
           </view>
           <view class="item-name">{{item.name}}</view>
           <view class="item-date">
@@ -80,6 +85,9 @@
         <view class="status-tag" style="background-color: {{item.statusBgColor}}; color: {{item.statusColor}};">
           {{item.statusText}}
         </view>
+        <view class="status-tag push-tag">
+          {{item.pushStatus || '未推送'}}
+        </view>
       </view>
     </view>
   </view>
@@ -88,7 +96,73 @@
   <view class="empty-state" wx:if="{{isEmpty}}">
     <text class="empty-icon">📭</text>
     <text class="empty-text">暂无物品记录</text>
-    <text class="empty-hint">点击下方按钮添加第一个物品</text>
+    <text class="empty-hint">点击底部"添加"按钮添加第一个物品</text>
   </view>
 
+</view>
+
+<!-- 编辑模态框 -->
+<view class="edit-modal" wx:if="{{showEditModal}}">
+  <view class="modal-mask" catchtap="closeEditModal"></view>
+  <view class="modal-content">
+    <!-- 标题栏 -->
+    <view class="modal-header">
+      <text class="modal-title">编辑物品</text>
+      <text class="modal-close" catchtap="closeEditModal">✕</text>
+    </view>
+    
+    <!-- 表单内容 -->
+    <scroll-view class="modal-body" scroll-y>
+      <!-- 物品名称 -->
+      <view class="form-item">
+        <view class="form-label"><text class="required">*</text>物品名称</view>
+        <input class="form-input" placeholder="请输入物品名称" value="{{editForm.name}}" bindinput="onEditNameInput" maxlength="30" />
+      </view>
+
+      <!-- 分类 -->
+      <view class="form-item">
+        <view class="form-label">分类</view>
+        <input class="form-input" placeholder="请输入或选择分类" value="{{editForm.category}}" bindinput="onEditCategoryInput" maxlength="10" />
+        <view class="category-tags">
+          <text class="category-tag {{editForm.category === item ? 'active' : ''}}" wx:for="{{categories}}" wx:key="*this" data-category="{{item}}" catchtap="selectEditCategory">
+            {{item}}
+          </text>
+        </view>
+      </view>
+
+      <!-- 件数 -->
+      <view class="form-item">
+        <view class="form-label">件数</view>
+        <view class="quantity-control">
+          <view class="quantity-btn" catchtap="adjustEditQuantity" data-action="minus">－</view>
+          <input class="quantity-input" type="number" value="{{editForm.quantity}}" bindinput="onEditQuantityInput" />
+          <text class="quantity-unit">件</text>
+          <view class="quantity-btn" catchtap="adjustEditQuantity" data-action="plus">＋</view>
+        </view>
+      </view>
+
+      <!-- 过期日期 -->
+      <view class="form-item">
+        <view class="form-label"><text class="required">*</text>过期日期</view>
+        <picker mode="date" value="{{editForm.expireDate}}" bindchange="onEditDateChange">
+          <view class="form-picker">
+            <text>{{editForm.expireDate || '请选择过期日期'}}</text>
+            <text class="picker-arrow">›</text>
+          </view>
+        </picker>
+      </view>
+
+      <!-- 备注 -->
+      <view class="form-item">
+        <view class="form-label">备注</view>
+        <textarea class="form-textarea" placeholder="添加备注信息（可选）" value="{{editForm.note}}" bindinput="onEditNoteInput" maxlength="100" />
+      </view>
+    </scroll-view>
+
+    <!-- 底部按钮 -->
+    <view class="modal-footer">
+      <view class="modal-btn modal-btn-delete" catchtap="deleteFromModal">删除</view>
+      <view class="modal-btn modal-btn-save" catchtap="saveEdit">保存</view>
+    </view>
+  </view>
 </view>

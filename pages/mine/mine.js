@@ -587,6 +587,35 @@ Page({
   // 生成简单邀请码
   generateCode() {
     return Math.random().toString(36).slice(2, 8).toUpperCase()
+  },
+
+  // 复制备案查询链接
+  copyBeianUrl() {
+    wx.setClipboardData({
+      data: 'https://beian.miit.gov.cn',
+      success: () => {
+        wx.showToast({
+          title: '已复制备案查询链接',
+          icon: 'success',
+          duration: 2000
+        })
+        // 提示用户打开浏览器
+        setTimeout(() => {
+          wx.showModal({
+            title: '查询备案信息',
+            content: '链接已复制，请在浏览器中打开查询\n备案号：渝ICP备2025076154号',
+            showCancel: false,
+            confirmText: '知道了'
+          })
+        }, 2000)
+      },
+      fail: () => {
+        wx.showToast({
+          title: '复制失败',
+          icon: 'none'
+        })
+      }
+    })
   }
 })
 

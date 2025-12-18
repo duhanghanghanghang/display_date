@@ -9,10 +9,10 @@ const ENV_MAP = {
     BASE_URL: 'http://10.11.209.8:8000' // 本地/局域网后端
   },
   dev: {
-    BASE_URL: 'https://dev.example.com' // 示例：开发/测试环境
+    BASE_URL: 'https://dhlhy.cn' // 示例：开发/测试环境
   },
   prod: {
-    BASE_URL: 'https://api.example.com' // 示例：生产环境
+    BASE_URL: 'https://dhlhy.cn' // 生产环境
   }
 }
 

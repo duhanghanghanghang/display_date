@@ -198,94 +198,99 @@ Page({
   },
 
   // 查询商品信息
-  queryProductInfo(barcode) {
-    const { apiKey } = this.data
-    
-    // 检查是否配置了API Key
-    if (!apiKey || apiKey === 'YOUR_TIANAPI_KEY') {
-      wx.hideLoading()
-      wx.showModal({
-        title: '提示',
-        content: '请先在代码中配置TianAPI的key\n\n1. 访问 tianapi.com 注册账号\n2. 获取API key\n3. 在 add.js 中替换 YOUR_TIANAPI_KEY',
-        showCancel: false
+  async queryProductInfo(barcode) {
+    try {
+      // 调用我们自己的后端接口（已集成多个API源）
+      const data = await request({
+        url: `/barcode/query?code=${barcode}`,
+        method: 'GET'
       })
-      return
-    }
-    
-    wx.request({
-      url: 'https://apis.tianapi.com/barcode/index',
-      method: 'GET',
-      data: {
-        key: apiKey,
-        barcode: barcode
-      },
-      success: (res) => {
-        wx.hideLoading()
+      
+      wx.hideLoading()
+      console.log('后端API返回:', data)
+      
+      if (data.found) {
+        // 找到商品信息
+        const productName = data.name || ''
+        const productBrand = data.brand || ''
+        const productImage = data.image || ''
+        const category = this.guessCategory(productName, data.category)
+        const note = productBrand ? `品牌: ${productBrand}` : ''
         
-        console.log('API返回:', res.data)
-        
-        if (res.data.code === 200 && res.data.result) {
-          const product = res.data.result
-          
-          // 自动填充商品信息（兼容不同字段名）
-          const productName = product.name || product.goodsname || ''
-          const productBrand = product.brand || ''
-          const productSpec = product.spec || ''
-          const productImage = product.goods_pic || product.image || ''
-          const category = this.guessCategory(productName)
-          const note = `${productBrand} ${productSpec}`.trim()
-          
-          this.setData({
-            name: productName,
-            category: category,
-            note: note,
-            productImage: productImage
-          })
-          
-          // 保存到本地历史记录
-          this.saveToLocalHistory(barcode, {
-            name: productName,
-            category: category,
-            note: note,
-            image: productImage
-          })
-          
-          wx.showToast({
-            title: '✅ 识别成功',
-            icon: 'none',
-            duration: 2000
-          })
-        } else {
-          // 识别失败，保留条码号，让用户手动输入
-          wx.showModal({
-            title: '未找到商品信息',
-            content: `条码：${barcode}\n\n数据库中暂无此商品信息，请手动输入商品名称\n\n提示：手动输入后，下次扫此条码会自动匹配`,
-            showCancel: false
-          })
+        const productData = {
+          name: productName,
+          category: category,
+          note: note,
+          image: productImage
         }
-      },
-      fail: (err) => {
-        wx.hideLoading()
-        console.error('API请求失败', err)
         
+        this.setData({
+          name: productName,
+          category: category,
+          note: note,
+          productImage: productImage
+        })
+        
+        // 保存到本地历史记录
+        this.saveToLocalHistory(barcode, productData)
+        
+        wx.showToast({
+          title: '✅ 识别成功',
+          icon: 'none',
+          duration: 2000
+        })
+      } else {
+        // 未找到商品信息
         wx.showModal({
-          title: '查询失败',
-          content: `条码：${barcode}\n\n网络请求失败，请手动输入商品名称`,
+          title: '未找到商品信息',
+          content: `条码：${barcode}\n\n数据库中暂无此商品信息，请手动输入商品名称\n\n提示：手动输入后，下次扫此条码会自动匹配`,
           showCancel: false
         })
       }
-    })
+    } catch (err) {
+      wx.hideLoading()
+      console.error('条形码查询失败:', err)
+      
+      wx.showModal({
+        title: '查询失败',
+        content: `条码：${barcode}\n\n网络请求失败，请检查网络连接后重试\n\n或手动输入商品名称`,
+        showCancel: false
+      })
+    }
   },
 
   // 根据商品名称猜测分类
-  guessCategory(name) {
+  guessCategory(name, apiCategory) {
+    // 如果API返回了分类，优先使用
+    if (apiCategory) {
+      const categoryMap = {
+        '纸巾': '其他',
+        '饮料': '饮料',
+        '零食': '零食',
+        '食品': '食品',
+        '药品': '药品',
+        '化妆品': '化妆品'
+      }
+      if (categoryMap[apiCategory]) {
+        return categoryMap[apiCategory]
+      }
+    }
     if (!name) return ''
     
-    const foodKeywords = ['奶', '饮料', '零食', '饼干', '糖', '巧克力', '面包', '蛋糕', '水果', '肉', '蔬菜']
+    // 根据商品名称关键词猜测分类
+    const foodKeywords = ['奶', '饮料', '零食', '饼干', '糖', '巧克力', '面包', '蛋糕', '水果', '肉', '蔬菜', '面', '米']
     const medicineKeywords = ['药', '片', '胶囊', '颗粒', '口服液', '药膏', '贴']
     const cosmeticKeywords = ['面霜', '乳液', '精华', '面膜', '口红', '香水', '洗面奶']
     const condimentKeywords = ['酱油', '醋', '油', '盐', '糖', '味精', '鸡精', '料酒']
+    const beverageKeywords = ['可乐', '雪碧', '茶', '水', '汁', '奶茶']
+    const tissueKeywords = ['纸巾', '卫生纸', '餐巾纸', '湿巾']
     
+    for (let keyword of tissueKeywords) {
+      if (name.includes(keyword)) return '其他'
+    }
+    for (let keyword of beverageKeywords) {
+      if (name.includes(keyword)) return '饮料'
+    }
     for (let keyword of foodKeywords) {
       if (name.includes(keyword)) return '食品'
     }
@@ -299,7 +304,7 @@ Page({
       if (name.includes(keyword)) return '调味品'
     }
     
-    return '食品' // 默认为食品
+    return '其他' // 默认为其他
   },
 
   // 输入分类

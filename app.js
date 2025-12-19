@@ -23,7 +23,8 @@ App({
   },
 
   globalData: {
-    openid: ''
+    openid: '',
+    baseURL: BASE_URL  // API基础URL，用于图片上传等
   },
 
   // 获取并缓存 openid（不再使用 token）

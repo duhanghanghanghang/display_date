@@ -52,40 +52,49 @@
       catchtap="editItem"
       data-id="{{item.id}}"
     >
-      <view class="item-left">
+      <!-- 左侧商品图片 -->
+      <view class="item-image-wrapper">
         <image 
-          class="item-product-image" 
+          class="item-image" 
           src="{{item.productImage}}" 
           mode="aspectFill"
           wx:if="{{item.productImage}}"
         />
-        <view class="item-content">
-          <view class="item-header">
-          <view class="item-category-badge" style="background-color: {{item.statusBgColor}}; color: {{item.statusColor}};">
-            {{item.category || '未分类'}}
-            </view>
-            <view class="item-quantity" wx:if="{{item.quantity && item.quantity > 1}}">
-              <text class="quantity-icon">×</text>
-              <text class="quantity-number">{{item.quantity}}</text>
-            </view>
+        <view class="item-image-placeholder" wx:else>
+          <text class="placeholder-icon">📦</text>
+        </view>
+      </view>
+      
+      <!-- 中间内容区 -->
+      <view class="item-content">
+        <view class="item-name-wrapper">
+          <text class="item-name">{{item.name}}</text>
+          <view class="item-quantity-inline" wx:if="{{item.quantity && item.quantity > 1}}">
+            ×{{item.quantity}}
           </view>
-          <view class="item-name">{{item.name}}</view>
-          <view class="item-date">
-            <text class="date-icon">📅</text>
-          <text>过期：{{item.expireDisplay || item.expireDate || '无日期'}}</text>
+        </view>
+        <view class="item-meta">
+          <view class="item-category-inline" wx:if="{{item.category}}">
+            {{item.category}}
+          </view>
+          <view class="item-date-inline">
+            <text class="date-icon-small">📅</text>
+            <text>{{item.expireDisplay || item.expireDate || '无日期'}}</text>
           </view>
         </view>
       </view>
+      
+      <!-- 右侧状态区 -->
       <view class="item-right">
         <view class="days-remaining" style="color: {{item.statusColor}};">
           <text wx:if="{{item.daysRemaining < 0}}">已过期</text>
           <text wx:elif="{{item.daysRemaining === 0}}">今天</text>
           <text wx:else>{{item.daysRemaining}}天</text>
         </view>
-        <view class="status-tag" style="background-color: {{item.statusBgColor}}; color: {{item.statusColor}};">
+        <view class="status-tag-compact" style="background-color: {{item.statusBgColor}}; color: {{item.statusColor}};">
           {{item.statusText}}
         </view>
-        <view class="status-tag push-tag">
+        <view class="push-tag-compact">
           {{item.pushStatus || '未推送'}}
         </view>
       </view>
@@ -113,16 +122,31 @@
     
     <!-- 表单内容 -->
     <scroll-view class="modal-body" scroll-y>
+      <!-- 商品图片 -->
+      <view class="form-item">
+        <view class="form-label">商品图片</view>
+        <view class="modal-image-upload">
+          <view class="modal-image-preview" wx:if="{{editForm.productImage}}" catchtap="previewModalImage">
+            <image class="modal-uploaded-image" src="{{editForm.productImage}}" mode="aspectFill"/>
+            <view class="modal-image-remove" catchtap="removeModalImage">×</view>
+          </view>
+          <view class="modal-upload-btn" wx:else catchtap="uploadModalImage">
+            <text class="modal-upload-icon">📷</text>
+            <text class="modal-upload-text">上传图片</text>
+          </view>
+        </view>
+      </view>
+
       <!-- 物品名称 -->
       <view class="form-item">
         <view class="form-label"><text class="required">*</text>物品名称</view>
         <input class="form-input" placeholder="请输入物品名称" value="{{editForm.name}}" bindinput="onEditNameInput" maxlength="30" />
       </view>
 
-      <!-- 分类 -->
+      <!-- 标签 -->
       <view class="form-item">
-        <view class="form-label">分类</view>
-        <input class="form-input" placeholder="请输入或选择分类" value="{{editForm.category}}" bindinput="onEditCategoryInput" maxlength="10" />
+        <view class="form-label">标签</view>
+        <input class="form-input" placeholder="请输入或选择标签" value="{{editForm.category}}" bindinput="onEditCategoryInput" maxlength="10" />
         <view class="category-tags">
           <text class="category-tag {{editForm.category === item ? 'active' : ''}}" wx:for="{{categories}}" wx:key="*this" data-category="{{item}}" catchtap="selectEditCategory">
             {{item}}

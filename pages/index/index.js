@@ -52,7 +52,8 @@ Page({
       category: '',
       expireDate: '',
       note: '',
-      quantity: 1
+      quantity: 1,
+      productImage: ''
     },
     categories: ['食品', '药品', '化妆品', '调味品', '证件', '饮料', '零食', '其他']
   },
@@ -225,9 +226,128 @@ Page({
         category: item.category || '',
         expireDate: item.expireDate || item.expire_date || '',
         note: item.note || '',
-        quantity: item.quantity || 1
+        quantity: item.quantity || 1,
+        productImage: item.productImage || ''
       }
     })
+  },
+
+  // 上传模态框图片
+  uploadModalImage() {
+    const app = getApp()
+    wx.chooseImage({
+      count: 1,
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        const tempFilePath = res.tempFilePaths[0]
+        
+        wx.showLoading({
+          title: '上传中...',
+          mask: true
+        })
+        
+        // 获取openid用于认证
+        const openid = wx.getStorageSync('openid')
+        if (!openid) {
+          wx.showToast({ title: '请先登录', icon: 'none' })
+          return
+        }
+        
+        wx.uploadFile({
+          url: `${app.globalData.baseURL}/upload/product-image`,
+          filePath: tempFilePath,
+          name: 'file',
+          header: {
+            'X-OpenId': openid
+          },
+          success: (uploadRes) => {
+            wx.hideLoading()
+            console.log('📤 上传响应状态:', uploadRes.statusCode)
+            console.log('📤 上传响应数据:', uploadRes.data)
+            
+            // 检查HTTP状态码
+            if (uploadRes.statusCode !== 200) {
+              console.error('❌ 上传失败，HTTP状态码:', uploadRes.statusCode)
+              wx.showToast({
+                title: `上传失败(${uploadRes.statusCode})`,
+                icon: 'none',
+                duration: 2000
+              })
+              return
+            }
+            
+            try {
+              const data = JSON.parse(uploadRes.data)
+              console.log('📦 解析后的数据:', data)
+              
+              if (data.code === 200 && data.data) {
+                const imageUrl = `${app.globalData.baseURL}${data.data.url}`
+                console.log('✅ 图片URL:', imageUrl)
+                this.setData({ 'editForm.productImage': imageUrl })
+                wx.showToast({
+                  title: '上传成功',
+                  icon: 'success',
+                  duration: 1500
+                })
+              } else {
+                console.error('❌ 业务错误:', data.message, 'code:', data.code)
+                wx.showToast({
+                  title: data.message || '上传失败',
+                  icon: 'none',
+                  duration: 2000
+                })
+              }
+            } catch (e) {
+              console.error('❌ 解析响应失败:', e, '原始数据:', uploadRes.data)
+              wx.showToast({
+                title: '数据解析失败',
+                icon: 'none',
+                duration: 2000
+              })
+            }
+          },
+          fail: (error) => {
+            wx.hideLoading()
+            console.error('❌ 上传请求失败:', error)
+            console.error('错误详情:', JSON.stringify(error))
+            wx.showToast({
+              title: error.errMsg || '网络请求失败',
+              icon: 'none',
+              duration: 2000
+            })
+          }
+        })
+      }
+    })
+  },
+
+  // 删除模态框图片
+  removeModalImage(e) {
+    wx.showModal({
+      title: '确认删除',
+      content: '确定要删除这张图片吗？',
+      success: (res) => {
+        if (res.confirm) {
+          this.setData({ 'editForm.productImage': '' })
+          wx.showToast({
+            title: '已删除',
+            icon: 'success',
+            duration: 1500
+          })
+        }
+      }
+    })
+  },
+
+  // 预览模态框图片
+  previewModalImage() {
+    if (this.data.editForm.productImage) {
+      wx.previewImage({
+        urls: [this.data.editForm.productImage],
+        current: this.data.editForm.productImage
+      })
+    }
   },
 
   // 关闭编辑模态框
@@ -305,7 +425,8 @@ Page({
           category: editForm.category.trim(),
           expire_date: editForm.expireDate,
           note: editForm.note.trim(),
-          quantity: editForm.quantity || 1
+          quantity: editForm.quantity || 1,
+          product_image: editForm.productImage || ''
         }
       })
       

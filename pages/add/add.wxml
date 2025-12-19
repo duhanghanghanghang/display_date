@@ -39,6 +39,29 @@
     </view>
   </view>
 
+  <!-- 图片上传 -->
+  <view class="form-section">
+    <view class="section-title">
+      <text>商品图片</text>
+    </view>
+    <view class="image-upload-wrapper">
+      <view class="image-preview-container" wx:if="{{productImage}}" bindtap="previewImage">
+        <image class="uploaded-image" src="{{productImage}}" mode="aspectFill"/>
+        <view class="image-mask">
+          <text class="mask-text">点击查看</text>
+        </view>
+        <view class="image-remove-btn" catchtap="removeImage">
+          <text>×</text>
+        </view>
+      </view>
+      <view class="image-upload-btn" wx:else bindtap="uploadImage">
+        <text class="upload-icon">📷</text>
+        <text class="upload-hint">上传商品图片</text>
+        <text class="upload-tip">支持jpg/png，自动压缩</text>
+      </view>
+    </view>
+  </view>
+
   <!-- 物品名称 -->
   <view class="form-section">
     <view class="section-title">
@@ -56,21 +79,42 @@
     </view>
   </view>
 
-  <!-- 分类 -->
+  <!-- 条码 -->
   <view class="form-section">
     <view class="section-title">
-      <text>分类</text>
+      <text>条码</text>
     </view>
     <view class="input-wrapper">
       <input 
         class="input" 
-        placeholder="请输入或选择分类" 
+        placeholder="扫码自动填入或手动输入条码" 
+        value="{{barcode}}"
+        bindinput="onBarcodeInput"
+        type="number"
+        maxlength="20"
+      />
+    </view>
+    <view class="field-hint" wx:if="{{barcode}}">
+      <text class="hint-icon">✓</text>
+      <text class="hint-text">已记录条码信息</text>
+    </view>
+  </view>
+
+  <!-- 标签 -->
+  <view class="form-section">
+    <view class="section-title">
+      <text>标签</text>
+    </view>
+    <view class="input-wrapper">
+      <input 
+        class="input" 
+        placeholder="请输入或选择标签" 
         value="{{category}}"
         bindinput="onCategoryInput"
         maxlength="10"
       />
     </view>
-    <!-- 快捷分类 -->
+    <!-- 快捷标签 -->
     <view class="quick-categories">
       <view 
         class="category-tag {{category === item ? 'active' : ''}}"

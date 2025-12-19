@@ -18,8 +18,8 @@ App({
     // 同步后端提醒设置
     await this.syncReminderSettings()
     
-    // 可选：检查过期物品（如需改为后端提醒，可移除）
-    this.checkExpiredItems()
+    // 可选：检查过期物品（已禁用自动提示，改为页面顶部显示）
+    // this.checkExpiredItems()
   },
 
   globalData: {

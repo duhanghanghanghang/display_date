@@ -63,7 +63,7 @@ Page({
 
   async onShow() {
     // 每次显示页面时刷新数据
-    app.checkExpiredItems()
+    // app.checkExpiredItems()  // 已禁用自动提示，改为页面顶部显示过期数量
     await this.initTeam()
     this.loadItems()
   },

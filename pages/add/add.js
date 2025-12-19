@@ -384,7 +384,9 @@ Page({
               if (data.code === 200 && data.data) {
                 const imageUrl = `${app.globalData.baseURL}${data.data.url}`
                 console.log('✅ 图片URL:', imageUrl)
-                this.setData({ productImage: imageUrl })
+                this.setData({ productImage: imageUrl }, () => {
+                  console.log('✅ setData完成，当前productImage:', this.data.productImage)
+                })
                 wx.showToast({
                   title: '上传成功',
                   icon: 'success',
@@ -489,27 +491,44 @@ Page({
 
   // 保存物品
   async saveItem() {
-    if (this.saving) return
+    if (this.saving) {
+      console.log('⚠️ 正在保存中，请勿重复点击')
+      return
+    }
+    
     this.saving = true
-    wx.showLoading({ title: '保存中...', mask: true })
     const { id, name, category, expireDate, note, barcode, productImage, quantity, isEdit } = this.data
     let teamInfo = this.teamInfo
+    
+    console.log('📝 开始保存，当前数据:', {
+      name,
+      productImage,
+      barcode,
+      expireDate
+    })
+    
     // 验证
     if (!name.trim()) {
       wx.showToast({
         title: '请输入物品名称',
-        icon: 'none'
+        icon: 'none',
+        duration: 1500
       })
+      this.saving = false  // ⚠️ 重要：重置保存状态
       return
     }
 
     if (!expireDate) {
       wx.showToast({
         title: '请选择过期日期',
-        icon: 'none'
+        icon: 'none',
+        duration: 1500
       })
+      this.saving = false  // ⚠️ 重要：重置保存状态
       return
     }
+    
+    wx.showLoading({ title: '保存中...', mask: true })
 
     const teamId = teamInfo && teamInfo._id ? teamInfo._id : null
 
@@ -523,6 +542,9 @@ Page({
       quantity: quantity || 1,
       teamId
     }
+    
+    console.log('📦 构建的payload:', payload)
+    console.log('🔍 payload.product_image:', payload.product_image)
 
     if (isEdit && id) {
       try {
@@ -532,7 +554,7 @@ Page({
           data: payload
         })
         wx.showToast({ title: '修改成功', icon: 'success' })
-        setTimeout(() => wx.navigateBack(), 800)
+        setTimeout(() => wx.navigateBack(), 1500)
       } catch (err) {
         console.error('更新失败', err)
         wx.showToast({ title: '更新失败', icon: 'none' })
@@ -571,7 +593,7 @@ Page({
   // 添加/恢复后给用户选择返回首页或继续添加
   afterAddSuccess(isEdit) {
     if (isEdit) {
-      setTimeout(() => wx.navigateBack(), 800)
+      setTimeout(() => wx.navigateBack(), 1500)
       return
     }
     wx.showModal({
@@ -624,7 +646,7 @@ Page({
               data: { deletedBy: openid }
             })
             wx.showToast({ title: '删除成功', icon: 'success' })
-            setTimeout(() => wx.navigateBack(), 800)
+            setTimeout(() => wx.navigateBack(), 1500)
           } catch (err) {
             console.error('删除失败', err)
             wx.showToast({ title: '删除失败', icon: 'none' })

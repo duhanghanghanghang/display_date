@@ -402,15 +402,31 @@ Page({
 
   // 保存编辑
   async saveEdit() {
+    if (this.saving) {
+      console.log('⚠️ 正在保存中，请勿重复点击')
+      return
+    }
+    
+    this.saving = true
     const { editForm } = this.data
     
     if (!editForm.name.trim()) {
-      wx.showToast({ title: '请输入物品名称', icon: 'none' })
+      wx.showToast({ 
+        title: '请输入物品名称', 
+        icon: 'none',
+        duration: 1500
+      })
+      this.saving = false  // ⚠️ 重要：重置保存状态
       return
     }
     
     if (!editForm.expireDate) {
-      wx.showToast({ title: '请选择过期日期', icon: 'none' })
+      wx.showToast({ 
+        title: '请选择过期日期', 
+        icon: 'none',
+        duration: 1500
+      })
+      this.saving = false  // ⚠️ 重要：重置保存状态
       return
     }
     
@@ -430,14 +446,15 @@ Page({
         }
       })
       
-      wx.showToast({ title: '保存成功', icon: 'success' })
+      wx.showToast({ title: '保存成功', icon: 'success', duration: 1500 })
       this.closeEditModal()
       this.loadItems() // 刷新列表
     } catch (err) {
       console.error('保存失败', err)
-      wx.showToast({ title: '保存失败', icon: 'none' })
+      wx.showToast({ title: '保存失败', icon: 'none', duration: 1500 })
     } finally {
       wx.hideLoading()
+      this.saving = false  // ⚠️ 重要：重置保存状态
     }
   },
 

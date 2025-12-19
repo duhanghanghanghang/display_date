@@ -37,15 +37,5 @@
     <view class="btn btn-primary send-btn" bindtap="requestSubscribeAndSend">测试推送</view>
   </view>
 
-  <!-- 备案信息 -->
-  <view class="beian-container">
-    <view class="beian-content" bindtap="copyBeianUrl">
-      <text class="beian-text">渝ICP备2025076154号</text>
-      <text class="beian-hint">点击复制备案查询链接</text>
-    </view>
-    <view class="beian-tips">
-      依据《非经营性互联网信息服务备案管理办法》进行备案
-    </view>
-  </view>
 </view>
 

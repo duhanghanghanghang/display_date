@@ -6,7 +6,7 @@
 
 const ENV_MAP = {
   local: {
-    BASE_URL: 'http://10.11.209.8:8000' // 本地/局域网后端
+    BASE_URL: 'https://dhlhy.cn' // 本地/局域网后端
   },
   dev: {
     BASE_URL: 'https://dhlhy.cn' // 示例：开发/测试环境

@@ -73,9 +73,9 @@
       <!-- 选择标签 -->
       <view class="form-item">
         <text class="label">选择标签<text class="required">*</text></text>
-        <picker mode="selector" range="{{categories}}" range-key="name" bindchange="onCategoryChange">
+        <picker mode="selector" range="{{categories}}" range-key="name" value="{{selectedCategoryIndex}}" bindchange="onCategoryChange">
           <view class="picker-view">
-            {{categories[0].name || '请选择'}}
+            {{categories[selectedCategoryIndex].name || '请选择'}}
           </view>
         </picker>
       </view>
@@ -87,7 +87,7 @@
           <text class="upload-icon">📷</text>
           <text class="upload-text">点击上传衣服照片</text>
         </view>
-        <view class="image-preview" wx:else>
+        <view class="image-preview" wx:else bindtap="previewItemImage">
           <image src="{{itemForm.imageUrl}}" mode="aspectFill" />
           <text class="remove-image" catchtap="removeItemImage">✕</text>
         </view>

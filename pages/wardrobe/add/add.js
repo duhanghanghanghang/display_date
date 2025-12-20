@@ -2,6 +2,7 @@
 const app = getApp()
 const { request } = require('../../../utils/request')
 const { showToast } = require('../../../utils/toast')
+const { ImageUploader } = require('../../../utils/imageUploader')
 
 Page({
   data: {

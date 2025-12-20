@@ -2,6 +2,7 @@
 const app = getApp()
 const { request } = require('../../utils/request')
 const { showToast, ToastDuration } = require('../../utils/toast')
+const { ImageUploader } = require('../../utils/imageUploader')
 
 Page({
   data: {
@@ -11,6 +12,7 @@ Page({
     showOutfitBtn: true,
     showAddItemDialog: false,
     selectedCategoryId: '',
+    selectedCategoryIndex: 0,
     itemForm: {
       name: '',
       imageUrl: ''
@@ -113,6 +115,7 @@ Page({
     this.setData({
       showAddItemDialog: true,
       selectedCategoryId: this.data.categories[0].id,
+      selectedCategoryIndex: 0,
       itemForm: {
         name: '',
         imageUrl: ''
@@ -127,8 +130,10 @@ Page({
 
   // 选择分类
   onCategoryChange(e) {
+    const index = parseInt(e.detail.value)
     this.setData({
-      selectedCategoryId: this.data.categories[e.detail.value].id
+      selectedCategoryIndex: index,
+      selectedCategoryId: this.data.categories[index].id
     })
   },
 
@@ -139,51 +144,42 @@ Page({
     })
   },
 
-  // 上传图片
+  // 上传图片（使用通用工具）
   async chooseItemImage() {
     try {
-      const res = await wx.chooseImage({
+      const imageUrl = await ImageUploader.chooseAndUpload({
         count: 1,
         sizeType: ['compressed'],
         sourceType: ['album', 'camera']
       })
-
-      const tempFilePath = res.tempFilePaths[0]
       
-      wx.showLoading({ title: '上传中...', mask: true })
+      this.setData({ 'itemForm.imageUrl': imageUrl })
+      console.log('✅ 图片URL已保存到表单:', imageUrl)
       
-      const uploadRes = await wx.uploadFile({
-        url: `${app.globalData.baseURL}/upload/product-image`,
-        filePath: tempFilePath,
-        name: 'file',
-        header: {
-          'X-OpenId': wx.getStorageSync('openid')
-        }
-      })
-
-      wx.hideLoading()
-      
-      const data = JSON.parse(uploadRes.data)
-      if (data.url) {
-        this.setData({ 'itemForm.imageUrl': data.url })
-        showToast('上传成功', 'success')
-      }
     } catch (err) {
-      wx.hideLoading()
       console.error('图片上传失败:', err)
-      showToast('上传失败', 'error')
+      // 错误已在 ImageUploader 中处理
     }
   },
 
   // 移除图片
   removeItemImage() {
     this.setData({ 'itemForm.imageUrl': '' })
+    showToast('已移除图片', 'success')
+  },
+
+  // 预览图片
+  previewItemImage() {
+    if (this.data.itemForm.imageUrl) {
+      ImageUploader.preview(this.data.itemForm.imageUrl)
+    }
   },
 
   // 保存衣服
   async saveItem() {
     const { selectedCategoryId, itemForm } = this.data
 
+    // 验证表单
     if (!itemForm.name || !itemForm.name.trim()) {
       showToast('请输入衣服名称', 'error')
       return
@@ -195,6 +191,14 @@ Page({
     }
 
     try {
+      wx.showLoading({ title: '保存中...', mask: true })
+      
+      console.log('📝 提交数据:', {
+        categoryId: selectedCategoryId,
+        name: itemForm.name.trim(),
+        imageUrl: itemForm.imageUrl
+      })
+
       await request({
         url: '/wardrobe/items',
         method: 'POST',
@@ -205,12 +209,20 @@ Page({
         }
       })
 
+      wx.hideLoading()
       showToast('添加成功', 'success')
+      
       this.closeAddItemDialog()
-      this.loadCategories()
+      
+      // 延迟刷新，确保toast显示
+      setTimeout(() => {
+        this.loadCategories()
+      }, 1500)
+      
     } catch (err) {
-      console.error('添加失败:', err)
-      showToast(err.message || '添加失败', 'error')
+      wx.hideLoading()
+      console.error('❌ 保存失败:', err)
+      showToast(err.message || '保存失败', 'error')
     }
   }
 })

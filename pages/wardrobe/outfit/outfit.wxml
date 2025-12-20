@@ -1,0 +1,88 @@
+<!-- pages/wardrobe/outfit/outfit.wxml -->
+<view class="outfit-container">
+  <!-- 虚拟人物展示区 -->
+  <view class="avatar-section">
+    <view class="avatar-placeholder">
+      <text class="avatar-icon">🧍</text>
+      <view class="selected-items-display">
+        <view class="selected-item" wx:for="{{Object.values(selectedItems)}}" wx:key="*this" wx:for-item="itemId">
+          <text>✓</text>
+        </view>
+      </view>
+    </view>
+    
+    <view class="selection-count">
+      已选择 {{Object.keys(selectedItems).length}} 件
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-bar">
+    <button class="action-btn clear" bindtap="clearSelection">清空</button>
+    <button class="action-btn save" bindtap="showSave">保存搭配</button>
+  </view>
+
+  <!-- 分类选择区 -->
+  <scroll-view class="categories-section" scroll-y>
+    <view class="category-block" wx:for="{{categories}}" wx:key="id" wx:for-item="category">
+      <view class="category-header">
+        <text class="category-name">{{category.name}}</text>
+        <text class="category-count">{{allItems[category.id].length}}件</text>
+      </view>
+      
+      <scroll-view class="items-scroll" scroll-x>
+        <view class="item-chip" 
+              wx:for="{{allItems[category.id]}}" 
+              wx:key="id"
+              wx:for-item="item"
+              class="{{selectedItems[category.id] === item.id ? 'selected' : ''}}"
+              bindtap="selectItem"
+              data-category-id="{{category.id}}"
+              data-item-id="{{item.id}}">
+          <image wx:if="{{item.imageUrl}}" class="chip-image" src="{{item.imageUrl}}" mode="aspectFill" />
+          <view wx:else class="chip-placeholder">
+            <text>{{item.name.substring(0, 2)}}</text>
+          </view>
+          <text class="chip-name">{{item.name}}</text>
+        </view>
+      </scroll-view>
+    </view>
+  </scroll-view>
+
+  <!-- 已保存的搭配 -->
+  <view class="saved-outfits-section" wx:if="{{savedOutfits.length > 0}}">
+    <view class="section-title">我的搭配方案</view>
+    <scroll-view class="outfits-scroll" scroll-x>
+      <view class="outfit-card" wx:for="{{savedOutfits}}" wx:key="id" bindtap="loadOutfit" data-outfit="{{item}}">
+        <text class="outfit-name">{{item.name}}</text>
+        <text class="outfit-count">{{Object.keys(item.items).length}}件</text>
+        <text class="delete-outfit" catchtap="deleteOutfit" data-id="{{item.id}}">✕</text>
+      </view>
+    </scroll-view>
+  </view>
+</view>
+
+<!-- 保存搭配弹窗 -->
+<view class="modal-mask" wx:if="{{showSaveDialog}}" catchtap="closeSaveDialog">
+  <view class="modal-content" catchtap="">
+    <view class="modal-header">
+      <text class="modal-title">保存搭配</text>
+      <text class="modal-close" catchtap="closeSaveDialog">✕</text>
+    </view>
+    
+    <view class="modal-body">
+      <input 
+        class="outfit-input"
+        placeholder="请输入搭配名称（如：上班通勤）"
+        value="{{outfitName}}"
+        bindinput="onOutfitNameInput"
+        maxlength="30"
+      />
+    </view>
+    
+    <view class="modal-footer">
+      <button class="modal-btn cancel" catchtap="closeSaveDialog">取消</button>
+      <button class="modal-btn confirm" catchtap="saveOutfit">保存</button>
+    </view>
+  </view>
+</view>

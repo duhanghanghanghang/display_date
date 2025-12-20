@@ -3,6 +3,10 @@
     "pages/index/index",
     "pages/add/add",
     "pages/edit/edit",
+    "pages/wardrobe/wardrobe",
+    "pages/wardrobe/add/add",
+    "pages/wardrobe/edit/edit",
+    "pages/wardrobe/outfit/outfit",
     "pages/team/team",
     "pages/mine/mine"
   ],
@@ -26,6 +30,10 @@
       {
         "pagePath": "pages/team/team",
         "text": "团队"
+      },
+      {
+        "pagePath": "pages/wardrobe/wardrobe",
+        "text": "穿"
       },
       {
         "pagePath": "pages/mine/mine",

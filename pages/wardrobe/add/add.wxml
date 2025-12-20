@@ -1,0 +1,116 @@
+<!-- pages/wardrobe/add/add.wxml -->
+<view class="container">
+  <view class="header">
+    <text class="category-title">{{categoryName}}</text>
+    <button class="add-btn" bindtap="showAdd">+ 添加衣服</button>
+  </view>
+
+  <!-- 衣服列表 -->
+  <view class="items-list">
+    <view class="item-card" wx:for="{{items}}" wx:key="id">
+      <!-- 图片 -->
+      <view class="item-image-wrapper" wx:if="{{item.imageUrl}}" bindtap="previewImage" data-url="{{item.imageUrl}}">
+        <image class="item-image" src="{{item.imageUrl}}" mode="aspectFill" />
+      </view>
+      <view class="item-image-placeholder" wx:else>
+        <text>无图片</text>
+      </view>
+
+      <!-- 信息 -->
+      <view class="item-info">
+        <text class="item-name">{{item.name}}</text>
+        <view class="item-details">
+          <text wx:if="{{item.color}}">颜色：{{item.color}}</text>
+          <text wx:if="{{item.size}}">尺码：{{item.size}}</text>
+          <text wx:if="{{item.season}}">季节：{{item.season}}</text>
+          <text wx:if="{{item.brand}}">品牌：{{item.brand}}</text>
+          <text wx:if="{{item.price}}">价格：¥{{item.price}}</text>
+        </view>
+      </view>
+
+      <!-- 操作按钮 -->
+      <view class="item-actions">
+        <button class="action-icon edit" bindtap="showEdit" data-item="{{item}}">✏️</button>
+        <button class="action-icon delete" bindtap="deleteItem" data-id="{{item.id}}">🗑️</button>
+      </view>
+    </view>
+
+    <view class="empty-tip" wx:if="{{items.length === 0}}">
+      <text>还没有添加衣服，点击右上角添加吧～</text>
+    </view>
+  </view>
+</view>
+
+<!-- 添加/编辑弹窗 -->
+<view class="modal-mask" wx:if="{{showAddDialog}}" catchtap="closeDialog">
+  <view class="modal-content" catchtap="">
+    <view class="modal-header">
+      <text class="modal-title">{{editingId ? '编辑衣服' : '添加衣服'}}</text>
+      <text class="modal-close" catchtap="closeDialog">✕</text>
+    </view>
+    
+    <scroll-view class="modal-body" scroll-y>
+      <!-- 图片上传 -->
+      <view class="form-section">
+        <view class="upload-area" wx:if="{{!form.imageUrl}}" bindtap="chooseImage">
+          <text class="upload-icon">📷</text>
+          <text class="upload-text">点击上传衣服照片</text>
+        </view>
+        <view class="image-preview" wx:else>
+          <image src="{{form.imageUrl}}" mode="aspectFill" />
+          <text class="remove-image" catchtap="removeImage">✕</text>
+        </view>
+      </view>
+
+      <!-- 表单字段 -->
+      <view class="form-item">
+        <text class="label">名称<text class="required">*</text></text>
+        <input class="input" placeholder="如：白色T恤" value="{{form.name}}" data-field="name" bindinput="onInputChange" />
+      </view>
+
+      <view class="form-item">
+        <text class="label">颜色</text>
+        <input class="input" placeholder="如：白色、黑色" value="{{form.color}}" data-field="color" bindinput="onInputChange" />
+      </view>
+
+      <view class="form-item">
+        <text class="label">尺码</text>
+        <input class="input" placeholder="如：M、L" value="{{form.size}}" data-field="size" bindinput="onInputChange" />
+      </view>
+
+      <view class="form-item">
+        <text class="label">季节</text>
+        <picker mode="selector" range="{{seasons}}" value="{{form.season}}" bindchange="onSeasonChange">
+          <view class="picker-view">{{form.season || '请选择'}}</view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <text class="label">品牌</text>
+        <input class="input" placeholder="品牌名称" value="{{form.brand}}" data-field="brand" bindinput="onInputChange" />
+      </view>
+
+      <view class="form-item">
+        <text class="label">价格</text>
+        <input class="input" type="digit" placeholder="购买价格" value="{{form.price}}" data-field="price" bindinput="onInputChange" />
+      </view>
+
+      <view class="form-item">
+        <text class="label">购买日期</text>
+        <picker mode="date" value="{{form.purchaseDate}}" bindchange="onInputChange" data-field="purchaseDate">
+          <view class="picker-view">{{form.purchaseDate || '请选择'}}</view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <text class="label">备注</text>
+        <textarea class="textarea" placeholder="其他说明" value="{{form.note}}" data-field="note" bindinput="onInputChange" maxlength="200" />
+      </view>
+    </scroll-view>
+    
+    <view class="modal-footer">
+      <button class="modal-btn cancel" catchtap="closeDialog">取消</button>
+      <button class="modal-btn confirm" catchtap="saveItem">保存</button>
+    </view>
+  </view>
+</view>

@@ -110,41 +110,17 @@ Page({
 
   async chooseImage() {
     try {
-      const res = await wx.chooseImage({
-        count: 1,
-        sizeType: ['compressed'],
-        sourceType: ['album', 'camera']
-      })
-
-      const tempFilePath = res.tempFilePaths[0]
-      
-      wx.showLoading({ title: '上传中...', mask: true })
-      
-      const uploadRes = await wx.uploadFile({
-        url: `${app.globalData.baseURL}/upload/product-image`,
-        filePath: tempFilePath,
-        name: 'file',
-        header: {
-          'X-OpenId': wx.getStorageSync('openid')
-        }
-      })
-
-      wx.hideLoading()
-      
-      const data = JSON.parse(uploadRes.data)
-      if (data.url) {
-        this.setData({ 'form.imageUrl': data.url })
-        showToast('上传成功', 'success')
-      }
+      const imageUrl = await ImageUploader.chooseAndUpload()
+      this.setData({ 'form.imageUrl': imageUrl })
     } catch (err) {
-      wx.hideLoading()
+      // 错误已在 ImageUploader 中处理
       console.error('图片上传失败:', err)
-      showToast('上传失败', 'error')
     }
   },
 
   removeImage() {
     this.setData({ 'form.imageUrl': '' })
+    showToast('已移除图片', 'success')
   },
 
   async saveItem() {

@@ -2,7 +2,15 @@
  * 图片上传通用工具类
  */
 const app = getApp()
-const { showToast } = require('./toast')
+
+// Toast 工具函数（避免循环依赖）
+function toast(title, icon = 'none', duration = 1500) {
+  wx.showToast({
+    title,
+    icon,
+    duration
+  })
+}
 
 class ImageUploader {
   /**
@@ -22,6 +30,7 @@ class ImageUploader {
 
     try {
       // 1. 选择图片
+      console.log('📸 开始选择图片...')
       const chooseRes = await wx.chooseImage({
         count,
         sizeType,
@@ -33,6 +42,7 @@ class ImageUploader {
       }
 
       const tempFilePath = chooseRes.tempFilePaths[0]
+      console.log('✅ 图片选择成功:', tempFilePath)
       
       // 2. 显示上传进度
       wx.showLoading({ 
@@ -46,23 +56,39 @@ class ImageUploader {
       wx.hideLoading()
 
       // 4. 解析响应
-      const data = JSON.parse(uploadRes.data)
+      let data
+      try {
+        data = JSON.parse(uploadRes.data)
+      } catch (parseErr) {
+        console.error('❌ 响应解析失败:', uploadRes.data)
+        throw new Error('服务器响应格式错误')
+      }
       
+      console.log('📥 上传响应解析:', data)
+      
+      // 5. 检查响应
       if (data.url) {
         console.log('✅ 图片上传成功:', data.url)
-        showToast('上传成功', 'success')
+        toast('上传成功', 'success', 1500)
         return data.url
+      } else if (data.message) {
+        throw new Error(data.message)
       } else {
-        throw new Error(data.message || '上传失败')
+        throw new Error('上传失败：未返回图片URL')
       }
 
     } catch (err) {
       wx.hideLoading()
       console.error('❌ 图片上传失败:', err)
       
-      const errorMsg = err.errMsg || err.message || '上传失败'
-      showToast(errorMsg, 'error')
+      let errorMsg = '上传失败'
+      if (err.errMsg) {
+        errorMsg = err.errMsg
+      } else if (err.message) {
+        errorMsg = err.message
+      }
       
+      toast(errorMsg, 'error', 2000)
       throw err
     }
   }
@@ -80,29 +106,32 @@ class ImageUploader {
         return
       }
 
-      const baseURL = app.globalData.baseURL || ''
+      const baseURL = app.globalData.baseURL
       if (!baseURL) {
         reject(new Error('API地址未配置'))
         return
       }
 
-      console.log('📤 开始上传图片:', {
-        url: `${baseURL}/upload/product-image`,
+      const uploadUrl = `${baseURL}/upload/product-image`
+      
+      console.log('📤 开始上传文件:', {
+        url: uploadUrl,
         filePath,
-        openid: openid.substring(0, 8) + '...'
+        openid: openid.substring(0, 10) + '...'
       })
 
       wx.uploadFile({
-        url: `${baseURL}/upload/product-image`,
+        url: uploadUrl,
         filePath: filePath,
         name: 'file',
         header: {
           'X-OpenId': openid
         },
+        timeout: 30000, // 30秒超时
         success: (res) => {
           console.log('📥 上传响应:', {
             statusCode: res.statusCode,
-            data: res.data
+            data: res.data.substring(0, 200) // 只打印前200字符
           })
           
           if (res.statusCode === 200) {
@@ -112,8 +141,8 @@ class ImageUploader {
           }
         },
         fail: (err) => {
-          console.error('❌ 上传失败:', err)
-          reject(err)
+          console.error('❌ 上传网络失败:', err)
+          reject(new Error(err.errMsg || '网络请求失败'))
         }
       })
     })

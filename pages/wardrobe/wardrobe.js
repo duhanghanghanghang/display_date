@@ -147,18 +147,23 @@ Page({
   // 上传图片（使用通用工具）
   async chooseItemImage() {
     try {
+      console.log('🎯 开始上传衣服图片...')
       const imageUrl = await ImageUploader.chooseAndUpload({
         count: 1,
         sizeType: ['compressed'],
         sourceType: ['album', 'camera']
       })
       
-      this.setData({ 'itemForm.imageUrl': imageUrl })
       console.log('✅ 图片URL已保存到表单:', imageUrl)
+      this.setData({ 
+        'itemForm.imageUrl': imageUrl 
+      }, () => {
+        console.log('✅ setData完成，当前imageUrl:', this.data.itemForm.imageUrl)
+      })
       
     } catch (err) {
-      console.error('图片上传失败:', err)
-      // 错误已在 ImageUploader 中处理
+      console.error('❌ 图片上传失败:', err)
+      // 错误已在 ImageUploader 中处理，这里只记录日志
     }
   },
 
@@ -179,6 +184,13 @@ Page({
   async saveItem() {
     const { selectedCategoryId, itemForm } = this.data
 
+    console.log('🔍 表单数据检查:', {
+      selectedCategoryId,
+      itemForm: itemForm,
+      name: itemForm.name,
+      imageUrl: itemForm.imageUrl
+    })
+
     // 验证表单
     if (!itemForm.name || !itemForm.name.trim()) {
       showToast('请输入衣服名称', 'error')
@@ -193,25 +205,26 @@ Page({
     try {
       wx.showLoading({ title: '保存中...', mask: true })
       
-      console.log('📝 提交数据:', {
+      const requestData = {
         categoryId: selectedCategoryId,
         name: itemForm.name.trim(),
         imageUrl: itemForm.imageUrl
-      })
+      }
+      
+      console.log('📝 发送请求:', requestData)
 
-      await request({
+      const res = await request({
         url: '/wardrobe/items',
         method: 'POST',
-        data: {
-          categoryId: selectedCategoryId,
-          name: itemForm.name.trim(),
-          imageUrl: itemForm.imageUrl
-        }
+        data: requestData
       })
 
+      console.log('✅ 保存成功响应:', res)
+      
       wx.hideLoading()
       showToast('添加成功', 'success')
       
+      // 关闭弹窗
       this.closeAddItemDialog()
       
       // 延迟刷新，确保toast显示

@@ -31,11 +31,11 @@
 </view>
 
 <!-- 添加分类弹窗 -->
-<view class="modal-mask" wx:if="{{showCategoryDialog}}" catchtap="closeCategoryDialog">
-  <view class="modal-content" catchtap="">
+<view class="modal-mask" wx:if="{{showCategoryDialog}}" bindtap="closeCategoryDialog">
+  <view class="modal-content" catchtap="stopPropagation">
     <view class="modal-header">
       <text class="modal-title">添加标签</text>
-      <text class="modal-close" catchtap="closeCategoryDialog">✕</text>
+      <text class="modal-close" bindtap="closeCategoryDialog">✕</text>
     </view>
     
     <view class="modal-body">
@@ -44,13 +44,14 @@
         placeholder="请输入标签名称（如：T恤、外套等）"
         value="{{newCategoryName}}"
         bindinput="onCategoryNameInput"
+        focus="{{showCategoryDialog}}"
         maxlength="20"
       />
     </view>
     
     <view class="modal-footer">
-      <button class="modal-btn cancel" catchtap="closeCategoryDialog">取消</button>
-      <button class="modal-btn confirm" catchtap="createCategory">确定</button>
+      <button class="modal-btn cancel" bindtap="closeCategoryDialog">取消</button>
+      <button class="modal-btn confirm" bindtap="createCategory">确定</button>
     </view>
   </view>
 </view>

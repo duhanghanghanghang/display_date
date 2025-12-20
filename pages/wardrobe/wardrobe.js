@@ -48,6 +48,11 @@ Page({
     this.setData({ showCategoryDialog: false })
   },
 
+  // 阻止冒泡
+  stopPropagation() {
+    // 空函数，用于阻止事件冒泡
+  },
+
   // 输入分类名称
   onCategoryNameInput(e) {
     this.setData({ newCategoryName: e.detail.value })

@@ -63,11 +63,11 @@
 </view>
 
 <!-- 保存搭配弹窗 -->
-<view class="modal-mask" wx:if="{{showSaveDialog}}" catchtap="closeSaveDialog">
-  <view class="modal-content" catchtap="">
+<view class="modal-mask" wx:if="{{showSaveDialog}}" bindtap="closeSaveDialog">
+  <view class="modal-content" catchtap="stopPropagation">
     <view class="modal-header">
       <text class="modal-title">保存搭配</text>
-      <text class="modal-close" catchtap="closeSaveDialog">✕</text>
+      <text class="modal-close" bindtap="closeSaveDialog">✕</text>
     </view>
     
     <view class="modal-body">

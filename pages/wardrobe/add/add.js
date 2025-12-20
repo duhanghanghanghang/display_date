@@ -89,6 +89,10 @@ Page({
     this.setData({ showAddDialog: false })
   },
 
+  stopPropagation() {
+    // 阻止事件冒泡
+  },
+
   onInputChange(e) {
     const { field } = e.currentTarget.dataset
     this.setData({

@@ -96,6 +96,10 @@ Page({
     this.setData({ showSaveDialog: false })
   },
 
+  stopPropagation() {
+    // 阻止事件冒泡
+  },
+
   onOutfitNameInput(e) {
     this.setData({ outfitName: e.detail.value })
   },

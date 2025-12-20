@@ -1,8 +1,12 @@
 // pages/wardrobe/wardrobe.js
 const app = getApp()
 const { request } = require('../../utils/request')
-const { showToast, ToastDuration } = require('../../utils/toast')
 const { ImageUploader } = require('../../utils/imageUploader')
+
+// 直接使用 wx.showToast，避免导入问题
+function showToast(title, icon = 'none', duration = 1500) {
+  wx.showToast({ title, icon, duration })
+}
 
 Page({
   data: {

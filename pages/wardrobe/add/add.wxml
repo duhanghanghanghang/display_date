@@ -42,11 +42,11 @@
 </view>
 
 <!-- 添加/编辑弹窗 -->
-<view class="modal-mask" wx:if="{{showAddDialog}}" catchtap="closeDialog">
-  <view class="modal-content" catchtap="">
+<view class="modal-mask" wx:if="{{showAddDialog}}" bindtap="closeDialog">
+  <view class="modal-content" catchtap="stopPropagation">
     <view class="modal-header">
       <text class="modal-title">{{editingId ? '编辑衣服' : '添加衣服'}}</text>
-      <text class="modal-close" catchtap="closeDialog">✕</text>
+      <text class="modal-close" bindtap="closeDialog">✕</text>
     </view>
     
     <scroll-view class="modal-body" scroll-y>

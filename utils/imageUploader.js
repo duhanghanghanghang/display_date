@@ -56,12 +56,17 @@ class ImageUploader {
         throw new Error('服务器响应格式错误')
       }
       
-      // 5. 检查结果
-      if (!data.url) {
-        throw new Error(data.message || '服务器未返回图片URL')
+      // 5. 检查结果（后端返回格式：{code, message, data: {url, filename, size}}）
+      if (data.code !== 200) {
+        throw new Error(data.message || '上传失败')
       }
 
-      imageUrl = data.url
+      if (!data.data || !data.data.url) {
+        console.error('❌ 响应数据异常:', data)
+        throw new Error('服务器未返回图片URL')
+      }
+
+      imageUrl = data.data.url  // ← 正确：取 data.data.url
       uploadSuccess = true
       console.log('✅ 上传成功! URL:', imageUrl)
       

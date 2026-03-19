@@ -294,15 +294,6 @@
   padding: 40rpx 30rpx;
 }
 
-.outfit-input {
-  width: 100%;
-  height: 88rpx;
-  padding: 0 24rpx;
-  border: 2rpx solid #eee;
-  border-radius: 12rpx;
-  font-size: 30rpx;
-}
-
 .modal-footer {
   display: flex;
   border-top: 1rpx solid #eee;
@@ -325,6 +316,6 @@
 }
 
 .modal-btn.confirm {
-  color: #667eea;
+  color: var(--primary-color, #4A90E2);
   font-weight: 500;
 }

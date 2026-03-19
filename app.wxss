@@ -1,8 +1,10 @@
 /* app.wxss - 全局样式 */
+/* WeUI 扩展库启用后自动注入基础样式，无需手动 import */
+@import '/styles/common.wxss';
 
 page {
-  --primary-color: #667EEA;
-  --primary-dark: #4A5FBF;
+  --primary-color: #4A90E2;
+  --primary-dark: #3A7BC8;
   --secondary-color: #764BA2;
   --success-color: #52C41A;
   --warning-color: #FAAD14;

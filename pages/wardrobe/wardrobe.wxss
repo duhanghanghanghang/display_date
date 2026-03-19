@@ -157,15 +157,6 @@
   padding: 40rpx 30rpx;
 }
 
-.category-input {
-  width: 100%;
-  height: 88rpx;
-  padding: 0 24rpx;
-  border: 2rpx solid #eee;
-  border-radius: 12rpx;
-  font-size: 30rpx;
-}
-
 .modal-footer {
   display: flex;
   border-top: 1rpx solid #eee;
@@ -188,7 +179,7 @@
 }
 
 .modal-btn.confirm {
-  color: #667eea;
+  color: var(--primary-color, #4A90E2);
   font-weight: 500;
 }
 
@@ -213,11 +204,13 @@
 .input,
 .picker-view {
   width: 100%;
-  height: 80rpx;
+  height: 88rpx;
   padding: 0 24rpx;
+  box-sizing: border-box;
   background: #f5f5f5;
   border-radius: 12rpx;
   font-size: 30rpx;
+  line-height: 88rpx;
   display: flex;
   align-items: center;
 }

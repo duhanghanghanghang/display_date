@@ -72,7 +72,7 @@
     
     <view class="modal-body">
       <input 
-        class="outfit-input"
+        class="common-input"
         placeholder="请输入搭配名称（如：上班通勤）"
         value="{{outfitName}}"
         bindinput="onOutfitNameInput"

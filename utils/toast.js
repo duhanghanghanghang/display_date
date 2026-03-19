@@ -117,4 +117,19 @@ class Toast {
   }
 }
 
-module.exports = { Toast, ToastDuration }
+/**
+ * 便捷方法：showToast(title, type)
+ * @param {string} title 提示文案
+ * @param {string} type success | error | warning | info | none
+ */
+function showToast(title, type = 'none') {
+  switch (type) {
+    case 'success': Toast.success(title); break
+    case 'error': Toast.error(title); break
+    case 'warning': Toast.warning(title); break
+    case 'info': Toast.info(title); break
+    default: Toast.custom(title, 'none'); break
+  }
+}
+
+module.exports = { Toast, ToastDuration, showToast }

@@ -55,7 +55,7 @@
     
     <view class="modal-body">
       <input 
-        class="category-input"
+        class="common-input"
         placeholder="请输入标签名称（如：T恤、外套等）"
         value="{{newCategoryName}}"
         bindinput="onCategoryNameInput"

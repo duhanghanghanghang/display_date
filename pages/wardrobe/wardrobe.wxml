@@ -23,6 +23,16 @@
       <text>添加标签</text>
     </button>
     
+    <button class="action-btn secondary" bindtap="goToCategory">
+      <text class="btn-icon">📁</text>
+      <text>分类管理</text>
+    </button>
+    
+    <button class="action-btn secondary" bindtap="goToItemList">
+      <text class="btn-icon">📋</text>
+      <text>全部衣服</text>
+    </button>
+    
     <button class="action-btn secondary" bindtap="goToOutfit">
       <text class="btn-icon">👗</text>
       <text>虚拟试衣</text>

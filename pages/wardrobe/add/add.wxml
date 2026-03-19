@@ -7,9 +7,9 @@
 
   <!-- 衣服列表 -->
   <view class="items-list">
-    <view class="item-card" wx:for="{{items}}" wx:key="id">
+    <view class="item-card" wx:for="{{items}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
       <!-- 图片 -->
-      <view class="item-image-wrapper" wx:if="{{item.imageUrl}}" bindtap="previewImage" data-url="{{item.imageUrl}}">
+      <view class="item-image-wrapper" wx:if="{{item.imageUrl}}" catchtap="previewImage" data-url="{{item.imageUrl}}">
         <image class="item-image" src="{{item.imageUrl}}" mode="aspectFill" />
       </view>
       <view class="item-image-placeholder" wx:else>
@@ -70,7 +70,9 @@
 
       <view class="form-item">
         <text class="label">颜色</text>
-        <input class="input" placeholder="如：白色、黑色" value="{{form.color}}" data-field="color" bindinput="onInputChange" />
+        <picker mode="selector" range="{{colors}}" value="{{colorIndex}}" bindchange="onColorChange">
+          <view class="picker-view">{{form.color || '请选择'}}</view>
+        </picker>
       </view>
 
       <view class="form-item">
@@ -80,7 +82,7 @@
 
       <view class="form-item">
         <text class="label">季节</text>
-        <picker mode="selector" range="{{seasons}}" value="{{form.season}}" bindchange="onSeasonChange">
+        <picker mode="selector" range="{{seasons}}" value="{{seasonIndex}}" bindchange="onSeasonChange">
           <view class="picker-view">{{form.season || '请选择'}}</view>
         </picker>
       </view>
@@ -97,7 +99,7 @@
 
       <view class="form-item">
         <text class="label">购买日期</text>
-        <picker mode="date" value="{{form.purchaseDate}}" bindchange="onInputChange" data-field="purchaseDate">
+        <picker mode="date" value="{{form.purchaseDate}}" bindchange="onPurchaseDateChange">
           <view class="picker-view">{{form.purchaseDate || '请选择'}}</view>
         </picker>
       </view>

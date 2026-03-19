@@ -1,0 +1,44 @@
+<!--pages/wardrobe/category/category.wxml-->
+<view class="container">
+  <view class="list" wx:if="{{!loading && categories.length > 0}}">
+    <view class="cat-item" wx:for="{{categories}}" wx:key="id">
+      <view class="cat-main" bindtap="goItemList" data-id="{{item.id}}">
+        <text class="cat-name">{{item.name}}</text>
+        <text class="cat-count">{{item.count || 0}} 件</text>
+      </view>
+      <view class="cat-actions">
+        <text class="action-btn" bindtap="showEdit" data-cat="{{item}}">编辑</text>
+        <text class="action-btn danger" bindtap="deleteCategory" data-cat="{{item}}">删除</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty-tip" wx:elif="{{!loading}}">暂无分类，点击下方添加</view>
+  <view class="empty-tip" wx:else>加载中...</view>
+
+  <view class="add-btn" bindtap="showAdd">+ 添加分类</view>
+</view>
+
+<!-- 添加弹窗 -->
+<view class="modal-mask" wx:if="{{showAddModal}}" bindtap="hideAdd">
+  <view class="modal" catchtap="">
+    <text class="modal-title">添加分类</text>
+    <input class="modal-input" placeholder="分类名称" value="{{addName}}" bindinput="onAddNameInput" />
+    <view class="modal-actions">
+      <button class="modal-btn cancel" bindtap="hideAdd">取消</button>
+      <button class="modal-btn primary" bindtap="submitAdd">确定</button>
+    </view>
+  </view>
+</view>
+
+<!-- 编辑弹窗 -->
+<view class="modal-mask" wx:if="{{editingId}}" bindtap="hideEdit">
+  <view class="modal" catchtap="">
+    <text class="modal-title">编辑分类</text>
+    <input class="modal-input" placeholder="分类名称" value="{{editName}}" bindinput="onEditNameInput" />
+    <view class="modal-actions">
+      <button class="modal-btn cancel" bindtap="hideEdit">取消</button>
+      <button class="modal-btn primary" bindtap="submitEdit">保存</button>
+    </view>
+  </view>
+</view>

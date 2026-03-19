@@ -20,6 +20,8 @@ class ImageUploader {
     let imageUrl = null
 
     try {
+      const baseURL = app.globalData.baseURL
+      if (!baseURL) throw new Error('API地址未配置')
       // 1. 选择图片
       console.log('📸 [1/4] 开始选择图片...')
       const chooseRes = await wx.chooseImage({
@@ -43,7 +45,7 @@ class ImageUploader {
 
       // 3. 上传到服务器
       console.log('📤 [3/4] 开始上传...')
-      const uploadRes = await this._uploadFile(tempFilePath)
+      const uploadRes = await this._uploadFile(tempFilePath, `${baseURL}/upload/product-image`)
       
       // 4. 解析响应
       console.log('📥 [4/4] 解析响应...')
@@ -119,10 +121,48 @@ class ImageUploader {
   }
 
   /**
-   * 上传文件到服务器（内部方法）
+   * 选择并上传衣服图片（使用 /upload/wardrobe-image）
+   */
+  static async chooseAndUploadWardrobe(options = {}) {
+    const uploadUrl = `${app.globalData.baseURL}/upload/wardrobe-image`
+    return this._chooseAndUploadToUrl(uploadUrl, {
+      count: 1,
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      ...options
+    })
+  }
+
+  /**
+   * 选择并上传到指定 URL（内部复用）
    * @private
    */
-  static _uploadFile(filePath) {
+  static async _chooseAndUploadToUrl(uploadUrl, options = {}) {
+    const { count = 1, sizeType = ['compressed'], sourceType = ['album', 'camera'] } = options
+    const chooseRes = await wx.chooseImage({ count, sizeType, sourceType })
+    if (!chooseRes.tempFilePaths || chooseRes.tempFilePaths.length === 0) {
+      throw new Error('未选择图片')
+    }
+    wx.showLoading({ title: '上传中...', mask: true })
+    try {
+      const uploadRes = await this._uploadFile(chooseRes.tempFilePaths[0], uploadUrl)
+      const data = JSON.parse(uploadRes.data)
+      if (data.code !== 200 || !data.data?.url) {
+        throw new Error(data.message || '上传失败')
+      }
+      return data.data.url
+    } finally {
+      wx.hideLoading()
+    }
+  }
+
+  /**
+   * 上传文件到服务器（内部方法）
+   * @param {string} filePath
+   * @param {string} [customUrl] 可选，不传则用 product-image
+   * @private
+   */
+  static _uploadFile(filePath, customUrl) {
     return new Promise((resolve, reject) => {
       const openid = wx.getStorageSync('openid')
       
@@ -137,7 +177,7 @@ class ImageUploader {
         return
       }
 
-      const uploadUrl = `${baseURL}/upload/product-image`
+      const uploadUrl = customUrl || `${baseURL}/upload/product-image`
       
       console.log('📤 上传请求:', {
         url: uploadUrl,

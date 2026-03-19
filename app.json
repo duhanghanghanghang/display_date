@@ -1,18 +1,16 @@
 {
   "pages": [
-    "pages/index/index",
-    "pages/add/add",
-    "pages/edit/edit",
     "pages/wardrobe/wardrobe",
     "pages/wardrobe/add/add",
     "pages/wardrobe/edit/edit",
     "pages/wardrobe/outfit/outfit",
-    "pages/team/team",
-    "pages/mine/mine"
+    "pages/wardrobe/item-list/item-list",
+    "pages/wardrobe/item-detail/item-detail",
+    "pages/wardrobe/category/category"
   ],
   "window": {
     "navigationBarBackgroundColor": "#4A90E2",
-    "navigationBarTitleText": "首页",
+    "navigationBarTitleText": "我的衣柜",
     "navigationBarTextStyle": "white",
     "backgroundColor": "#F5F5F5",
     "backgroundTextStyle": "dark"
@@ -20,24 +18,16 @@
   "tabBar": {
     "list": [
       {
-        "pagePath": "pages/index/index",
-        "text": "首页"
-      },
-      {
-        "pagePath": "pages/add/add",
-        "text": "添加"
-      },
-      {
-        "pagePath": "pages/team/team",
-        "text": "团队"
-      },
-      {
         "pagePath": "pages/wardrobe/wardrobe",
-        "text": "穿"
+        "text": "衣柜"
       },
       {
-        "pagePath": "pages/mine/mine",
-        "text": "我的"
+        "pagePath": "pages/wardrobe/item-list/item-list",
+        "text": "全部"
+      },
+      {
+        "pagePath": "pages/wardrobe/category/category",
+        "text": "分类"
       }
     ],
     "color": "#666666",

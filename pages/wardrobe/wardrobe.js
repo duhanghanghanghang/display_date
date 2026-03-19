@@ -102,6 +102,16 @@ Page({
     })
   },
 
+  // 跳转到分类管理
+  goToCategory() {
+    wx.navigateTo({ url: '/pages/wardrobe/category/category' })
+  },
+
+  // 跳转到全部衣服列表
+  goToItemList() {
+    wx.navigateTo({ url: '/pages/wardrobe/item-list/item-list' })
+  },
+
   // 跳转到虚拟试衣
   goToOutfit() {
     wx.navigateTo({
@@ -152,7 +162,7 @@ Page({
   async chooseItemImage() {
     try {
       console.log('🎯 开始上传衣服图片...')
-      const imageUrl = await ImageUploader.chooseAndUpload({
+      const imageUrl = await ImageUploader.chooseAndUploadWardrobe({
         count: 1,
         sizeType: ['compressed'],
         sourceType: ['album', 'camera']

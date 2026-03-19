@@ -1,0 +1,30 @@
+<!--pages/wardrobe/item-list/item-list.wxml-->
+<view class="container">
+  <view class="filter-bar">
+    <picker mode="selector" range="{{categories}}" range-key="name" value="{{categoryIndex}}" bindchange="onCategoryChange">
+      <view class="filter-item">{{categories[categoryIndex] ? categories[categoryIndex].name : '全部分类'}} ▼</view>
+    </picker>
+    <picker mode="selector" range="{{colors}}" value="{{colorIndex}}" bindchange="onColorChange">
+      <view class="filter-item">{{color || '颜色'}} ▼</view>
+    </picker>
+    <picker mode="selector" range="{{seasons}}" value="{{seasonIndex}}" bindchange="onSeasonChange">
+      <view class="filter-item">{{season || '季节'}} ▼</view>
+    </picker>
+    <view class="filter-item reset" bindtap="resetFilter">重置</view>
+  </view>
+
+  <view class="list" wx:if="{{items.length > 0}}">
+    <view class="item-card" wx:for="{{items}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+      <image class="item-img" src="{{item.imageUrl}}" mode="aspectFill" />
+      <text class="item-name">{{item.name}}</text>
+      <text class="item-meta">{{item.categoryName || '-'}} · {{item.season || '-'}}</text>
+    </view>
+  </view>
+
+  <view class="empty-tip" wx:elif="{{!loading}}">暂无衣服</view>
+  <view class="empty-tip" wx:else>加载中...</view>
+
+  <view class="load-more" wx:if="{{items.length > 0 && hasMore}}" bindtap="loadMore">
+    {{loading ? '加载中...' : '上拉加载更多'}}
+  </view>
+</view>

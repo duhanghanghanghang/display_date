@@ -1,0 +1,40 @@
+<!--pages/wardrobe/item-detail/item-detail.wxml-->
+<view class="container" wx:if="{{!loading && item}}">
+  <view class="image-wrap" bindtap="previewImage">
+    <image class="main-img" src="{{item.imageUrl}}" mode="aspectFill" />
+  </view>
+
+  <view class="info-card">
+    <text class="item-name">{{item.name}}</text>
+    <text class="item-meta">{{item.categoryName || '-'}} · {{item.color || '-'}} · {{item.season || '-'}}</text>
+
+    <view class="info-row" wx:if="{{item.size}}">
+      <text class="info-label">尺码</text>
+      <text class="info-value">{{item.size}}</text>
+    </view>
+    <view class="info-row" wx:if="{{item.brand}}">
+      <text class="info-label">品牌</text>
+      <text class="info-value">{{item.brand}}</text>
+    </view>
+    <view class="info-row" wx:if="{{item.price}}">
+      <text class="info-label">价格</text>
+      <text class="info-value">¥{{item.price}}</text>
+    </view>
+    <view class="info-row" wx:if="{{item.purchaseDate}}">
+      <text class="info-label">购买日期</text>
+      <text class="info-value">{{item.purchaseDate}}</text>
+    </view>
+    <view class="info-row" wx:if="{{item.note}}">
+      <text class="info-label">备注</text>
+      <text class="info-value">{{item.note}}</text>
+    </view>
+  </view>
+
+  <view class="actions">
+    <button class="btn-primary" bindtap="goEdit">编辑</button>
+    <button class="btn-secondary" bindtap="deleteItem">删除</button>
+  </view>
+</view>
+
+<view class="empty-tip" wx:elif="{{loading}}">加载中...</view>
+<view class="empty-tip" wx:else>加载失败</view>

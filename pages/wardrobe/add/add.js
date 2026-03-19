@@ -3,6 +3,7 @@ const app = getApp()
 const { request } = require('../../../utils/request')
 const { showToast } = require('../../../utils/toast')
 const { ImageUploader } = require('../../../utils/imageUploader')
+const { COLORS, SEASONS } = require('../../../utils/constants')
 
 Page({
   data: {
@@ -22,8 +23,10 @@ Page({
       note: ''
     },
     editingId: null,
-    seasons: ['春', '夏', '秋', '冬'],
-    selectedSeason: ''
+    seasons: SEASONS,
+    colors: COLORS,
+    colorIndex: -1,
+    seasonIndex: -1
   },
 
   onLoad(options) {
@@ -42,7 +45,7 @@ Page({
         url: `/wardrobe/items?category_id=${this.data.categoryId}`,
         method: 'GET'
       })
-      this.setData({ items: res.items })
+      this.setData({ items: res.items || [] })
     } catch (err) {
       console.error('加载衣服列表失败:', err)
       showToast('加载失败', 'error')
@@ -53,6 +56,8 @@ Page({
     this.setData({ 
       showAddDialog: true,
       editingId: null,
+      colorIndex: -1,
+      seasonIndex: -1,
       form: {
         name: '',
         color: '',
@@ -69,16 +74,20 @@ Page({
 
   showEdit(e) {
     const item = e.currentTarget.dataset.item
+    const colorIdx = COLORS.indexOf(item.color || '')
+    const seasonIdx = SEASONS.indexOf(item.season || '')
     this.setData({
       showAddDialog: true,
       editingId: item.id,
+      colorIndex: colorIdx >= 0 ? colorIdx : -1,
+      seasonIndex: seasonIdx >= 0 ? seasonIdx : -1,
       form: {
         name: item.name,
         color: item.color || '',
         size: item.size || '',
         season: item.season || '',
         brand: item.brand || '',
-        price: item.price || '',
+        price: item.price ? String(item.price) : '',
         purchaseDate: item.purchaseDate || '',
         imageUrl: item.imageUrl || '',
         note: item.note || ''
@@ -102,15 +111,24 @@ Page({
   },
 
   onSeasonChange(e) {
-    const season = this.data.seasons[e.detail.value]
-    this.setData({
-      'form.season': season
-    })
+    const idx = parseInt(e.detail.value, 10)
+    const season = this.data.seasons[idx] || ''
+    this.setData({ seasonIndex: idx, 'form.season': season })
+  },
+
+  onColorChange(e) {
+    const idx = parseInt(e.detail.value, 10)
+    const color = this.data.colors[idx] || ''
+    this.setData({ colorIndex: idx, 'form.color': color })
+  },
+
+  onPurchaseDateChange(e) {
+    this.setData({ 'form.purchaseDate': e.detail.value })
   },
 
   async chooseImage() {
     try {
-      const imageUrl = await ImageUploader.chooseAndUpload()
+      const imageUrl = await ImageUploader.chooseAndUploadWardrobe()
       this.setData({ 'form.imageUrl': imageUrl })
     } catch (err) {
       // 错误已在 ImageUploader 中处理
@@ -193,10 +211,18 @@ Page({
   },
 
   previewImage(e) {
+    e.stopPropagation()
     const { url } = e.currentTarget.dataset
     wx.previewImage({
       urls: [url],
       current: url
+    })
+  },
+
+  goDetail(e) {
+    const { id } = e.currentTarget.dataset
+    wx.navigateTo({
+      url: `/pages/wardrobe/item-detail/item-detail?id=${id}`
     })
   }
 })

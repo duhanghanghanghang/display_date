@@ -1,2 +1,69 @@
 <!--pages/wardrobe/edit/edit.wxml-->
-<text>pages/wardrobe/edit/edit.wxml</text>
+<view class="container">
+  <view class="form-item">
+    <text class="label">图片 *</text>
+    <view class="upload-area" wx:if="{{!form.imageUrl}}" bindtap="chooseImage">
+      <text class="upload-icon">📷</text>
+      <text class="upload-text">点击上传衣服照片</text>
+    </view>
+    <view class="image-preview" wx:else>
+      <image src="{{form.imageUrl}}" mode="aspectFill" />
+      <text class="remove-image" catchtap="removeImage">✕</text>
+    </view>
+  </view>
+
+  <view class="form-item">
+    <text class="label">分类 *</text>
+    <picker mode="selector" range="{{categories}}" range-key="name" value="{{categoryIndex}}" bindchange="onCategoryChange">
+      <view class="picker-view">{{categoryIndex >= 0 && categories[categoryIndex] ? categories[categoryIndex].name : '请选择分类'}}</view>
+    </picker>
+  </view>
+
+  <view class="form-item">
+    <text class="label">名称 *</text>
+    <input class="input" placeholder="如：白色T恤" value="{{form.name}}" data-field="name" bindinput="onInputChange" />
+  </view>
+
+  <view class="form-item">
+    <text class="label">颜色</text>
+    <picker mode="selector" range="{{colors}}" value="{{colorIndex}}" bindchange="onColorChange">
+      <view class="picker-view">{{form.color || '请选择'}}</view>
+    </picker>
+  </view>
+
+  <view class="form-item">
+    <text class="label">尺码</text>
+    <input class="input" placeholder="如：M、L" value="{{form.size}}" data-field="size" bindinput="onInputChange" />
+  </view>
+
+  <view class="form-item">
+    <text class="label">季节</text>
+    <picker mode="selector" range="{{seasons}}" value="{{seasonIndex}}" bindchange="onSeasonChange">
+      <view class="picker-view">{{form.season || '请选择'}}</view>
+    </picker>
+  </view>
+
+  <view class="form-item">
+    <text class="label">品牌</text>
+    <input class="input" placeholder="品牌" value="{{form.brand}}" data-field="brand" bindinput="onInputChange" />
+  </view>
+
+  <view class="form-item">
+    <text class="label">价格</text>
+    <input class="input" type="digit" placeholder="价格" value="{{form.price}}" data-field="price" bindinput="onInputChange" />
+  </view>
+
+  <view class="form-item">
+    <text class="label">购买日期</text>
+    <picker mode="date" value="{{form.purchaseDate}}" bindchange="onPurchaseDateChange">
+      <view class="picker-view">{{form.purchaseDate || '请选择'}}</view>
+    </picker>
+  </view>
+
+  <view class="form-item">
+    <text class="label">备注</text>
+    <textarea class="textarea" placeholder="备注" value="{{form.note}}" data-field="note" bindinput="onInputChange" />
+  </view>
+
+  <button class="submit-btn" bindtap="saveItem" disabled="{{submitting}}">保存</button>
+</view>

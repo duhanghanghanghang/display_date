@@ -38,6 +38,10 @@ Page({
     this.setData({ showAddModal: false })
   },
 
+  stopPropagation() {
+    // 阻止点击弹窗内容时冒泡到 mask，避免误关闭
+  },
+
   onAddNameInput(e) {
     this.setData({ addName: e.detail.value })
   },

@@ -121,39 +121,34 @@ class ImageUploader {
   }
 
   /**
-   * 选择并上传衣服图片（使用 /upload/wardrobe-image）
+   * 选择并上传衣服图片（3:4 裁剪）
+   * 流程：选图 -> 裁剪页预览确认 -> 上传
    */
-  static async chooseAndUploadWardrobe(options = {}) {
-    const uploadUrl = `${app.globalData.baseURL}/upload/wardrobe-image`
-    return this._chooseAndUploadToUrl(uploadUrl, {
-      count: 1,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
-      ...options
+  static chooseAndUploadWardrobe(options = {}) {
+    return new Promise((resolve, reject) => {
+      const { count = 1, sizeType = ['compressed'], sourceType = ['album', 'camera'] } = options
+      wx.chooseImage({
+        count,
+        sizeType,
+        sourceType,
+        success: (res) => {
+          if (!res.tempFilePaths || res.tempFilePaths.length === 0) {
+            reject(new Error('未选择图片'))
+            return
+          }
+          app.globalData.pendingCropPath = res.tempFilePaths[0]
+          app.globalData.wardrobeUploadResolve = resolve
+          app.globalData.wardrobeUploadReject = reject
+          wx.navigateTo({ url: '/pages/wardrobe/crop/crop' })
+        },
+        fail: (err) => {
+          if (err.errMsg && !err.errMsg.includes('cancel')) {
+            wx.showToast({ title: '已取消', icon: 'none' })
+          }
+          reject(err)
+        }
+      })
     })
-  }
-
-  /**
-   * 选择并上传到指定 URL（内部复用）
-   * @private
-   */
-  static async _chooseAndUploadToUrl(uploadUrl, options = {}) {
-    const { count = 1, sizeType = ['compressed'], sourceType = ['album', 'camera'] } = options
-    const chooseRes = await wx.chooseImage({ count, sizeType, sourceType })
-    if (!chooseRes.tempFilePaths || chooseRes.tempFilePaths.length === 0) {
-      throw new Error('未选择图片')
-    }
-    wx.showLoading({ title: '上传中...', mask: true })
-    try {
-      const uploadRes = await this._uploadFile(chooseRes.tempFilePaths[0], uploadUrl)
-      const data = JSON.parse(uploadRes.data)
-      if (data.code !== 200 || !data.data?.url) {
-        throw new Error(data.message || '上传失败')
-      }
-      return data.data.url
-    } finally {
-      wx.hideLoading()
-    }
   }
 
   /**

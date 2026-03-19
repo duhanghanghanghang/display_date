@@ -1,0 +1,13 @@
+<!-- 图片裁剪页：3:4 比例 -->
+<view class="crop-container">
+  <view class="crop-tip">图片将按 3:4 比例裁剪，适合上衣、裙子等</view>
+  <view class="crop-preview-wrap">
+    <image class="crop-preview-img" src="{{imagePath}}" mode="aspectFit" binderror="onImageError" />
+    <view class="crop-frame"></view>
+  </view>
+  <canvas type="2d" id="cropCanvas" class="crop-canvas"></canvas>
+  <view class="crop-actions">
+    <button class="crop-btn cancel" bindtap="onCancel">重选</button>
+    <button class="crop-btn confirm" bindtap="onConfirm">确认上传</button>
+  </view>
+</view>

@@ -39,6 +39,21 @@
     </button>
   </view>
 
+  <!-- 虚拟试衣预览 -->
+  <view class="outfit-preview" bindtap="goToOutfit">
+    <view class="outfit-preview-inner">
+      <image wx:if="{{outfitPreview.imageUrl}}" class="outfit-preview-img" src="{{outfitPreview.imageUrl}}" mode="aspectFill" />
+      <view wx:else class="outfit-preview-placeholder">
+        <text class="outfit-preview-icon">👗</text>
+        <text class="outfit-preview-text">{{outfitPreview.hasOutfit ? '查看我的搭配' : '搭配你的造型'}}</text>
+      </view>
+      <view class="outfit-preview-mask">
+        <text class="outfit-preview-title">{{outfitPreview.outfitName || '虚拟试衣'}}</text>
+        <text class="outfit-preview-tip">点击进入</text>
+      </view>
+    </view>
+  </view>
+
   <!-- 提示文本 -->
   <view class="tip-text" wx:if="{{categories.length === 0}}">
     <text>还没有衣服分类，点击"添加标签"开始吧～</text>

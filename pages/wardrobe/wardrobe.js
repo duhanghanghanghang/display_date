@@ -13,36 +13,66 @@ Page({
     categories: [],
     showCategoryDialog: false,
     newCategoryName: '',
-    showOutfitBtn: true,
     showAddItemDialog: false,
     selectedCategoryId: '',
     selectedCategoryIndex: 0,
-    itemForm: {
-      name: '',
-      imageUrl: ''
-    }
+    itemForm: { name: '', imageUrl: '' },
+    outfitPreview: { imageUrl: '', outfitName: '', hasOutfit: false }
   },
 
   onLoad() {
     this.loadCategories()
+    this.loadOutfitPreview()
   },
 
   onShow() {
     this.loadCategories()
+    this.loadOutfitPreview()
   },
 
   async loadCategories() {
     try {
-      const res = await request({
-        url: '/wardrobe/categories',
-        method: 'GET'
-      })
-      
-      // 显示所有分类，包括空的
-      this.setData({ categories: res.categories })
+      const res = await request({ url: '/wardrobe/categories', method: 'GET' })
+      this.setData({ categories: res.categories || [] })
     } catch (err) {
-      console.error('加载分类失败:', err)
       showToast('加载失败', 'error')
+    }
+  },
+
+  async loadOutfitPreview() {
+    try {
+      const [outfitRes, itemsRes] = await Promise.all([
+        request({ url: '/wardrobe/outfits', method: 'GET' }),
+        request({ url: '/wardrobe/items', method: 'GET', data: { size: 50 } })
+      ])
+      const outfits = outfitRes.outfits || []
+      const items = itemsRes.items || []
+      const itemMap = {}
+      items.forEach(i => { itemMap[i.id] = i })
+
+      let imageUrl = ''
+      let outfitName = ''
+      if (outfits.length > 0) {
+        const latest = outfits[0]
+        outfitName = latest.name || ''
+        const itemIds = latest.items ? Object.values(latest.items) : []
+        for (const id of itemIds) {
+          if (itemMap[id]?.imageUrl) {
+            imageUrl = itemMap[id].imageUrl
+            break
+          }
+        }
+      }
+
+      this.setData({
+        outfitPreview: {
+          imageUrl,
+          outfitName,
+          hasOutfit: outfits.length > 0
+        }
+      })
+    } catch (err) {
+      this.setData({ outfitPreview: { imageUrl: '', outfitName: '', hasOutfit: false } })
     }
   },
 

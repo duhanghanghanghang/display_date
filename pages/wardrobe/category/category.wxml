@@ -21,7 +21,7 @@
 
 <!-- 添加弹窗 -->
 <view class="modal-mask" wx:if="{{showAddModal}}" bindtap="hideAdd">
-  <view class="modal-content" catchtap="">
+  <view class="modal-content" catchtap="stopPropagation">
     <view class="modal-header">
       <text class="modal-title">添加分类</text>
     </view>
@@ -37,7 +37,7 @@
 
 <!-- 编辑弹窗 -->
 <view class="modal-mask" wx:if="{{editingId}}" bindtap="hideEdit">
-  <view class="modal-content" catchtap="">
+  <view class="modal-content" catchtap="stopPropagation">
     <view class="modal-header">
       <text class="modal-title">编辑分类</text>
     </view>

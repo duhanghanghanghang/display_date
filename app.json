@@ -4,6 +4,7 @@
   },
   "pages": [
     "pages/wardrobe/wardrobe",
+    "pages/wardrobe/crop/crop",
     "pages/wardrobe/add/add",
     "pages/wardrobe/edit/edit",
     "pages/wardrobe/outfit/outfit",

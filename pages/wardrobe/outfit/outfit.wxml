@@ -1,19 +1,25 @@
 <!-- pages/wardrobe/outfit/outfit.wxml -->
 <view class="outfit-container">
-  <!-- 虚拟人物展示区 -->
+  <view wx:if="{{loading}}" class="loading-tip">加载中...</view>
+  <block wx:else>
+  <!-- 搭配预览区 -->
   <view class="avatar-section">
-    <view class="avatar-placeholder">
-      <text class="avatar-icon">🧍</text>
-      <view class="selected-items-display">
-        <view class="selected-item" wx:for="{{Object.values(selectedItems)}}" wx:key="*this" wx:for-item="itemId">
-          <text>✓</text>
+    <view class="preview-area">
+      <block wx:if="{{selectedForPreview.length > 0}}">
+        <view class="preview-items">
+          <view class="preview-item" wx:for="{{selectedForPreview}}" wx:key="item.id">
+            <view class="preview-label">{{item.categoryName}}</view>
+            <image wx:if="{{item.item.imageUrl}}" class="preview-img" src="{{item.item.imageUrl}}" mode="aspectFill" binderror="onImageError" />
+            <view wx:else class="preview-placeholder">{{item.item.name.substring(0,2)}}</view>
+          </view>
         </view>
+      </block>
+      <view wx:else class="preview-empty">
+        <text class="preview-empty-icon">👔</text>
+        <text class="preview-empty-text">在下方选择衣服，搭配你的造型</text>
       </view>
     </view>
-    
-    <view class="selection-count">
-      已选择 {{Object.keys(selectedItems).length}} 件
-    </view>
+    <view class="selection-count">已选择 {{selectedCount}} 件</view>
   </view>
 
   <!-- 操作按钮 -->
@@ -23,16 +29,20 @@
   </view>
 
   <!-- 分类选择区 -->
-  <scroll-view class="categories-section" scroll-y>
+  <view class="categories-section">
+  <view wx:if="{{categories.length === 0}}" class="empty-categories">
+    <text>请先添加分类和衣服</text>
+  </view>
+  <scroll-view wx:else class="categories-scroll" scroll-y>
     <view class="category-block" wx:for="{{categories}}" wx:key="id" wx:for-item="category">
       <view class="category-header">
         <text class="category-name">{{category.name}}</text>
-        <text class="category-count">{{allItems[category.id].length}}件</text>
+        <text class="category-count">{{category.itemCount}}件</text>
       </view>
       
       <scroll-view class="items-scroll" scroll-x>
         <view class="item-chip" 
-              wx:for="{{allItems[category.id]}}" 
+              wx:for="{{category.items}}" 
               wx:key="id"
               wx:for-item="item"
               class="{{selectedItems[category.id] === item.id ? 'selected' : ''}}"
@@ -48,37 +58,52 @@
       </scroll-view>
     </view>
   </scroll-view>
+  </view>
 
   <!-- 已保存的搭配 -->
   <view class="saved-outfits-section" wx:if="{{savedOutfits.length > 0}}">
     <view class="section-title">我的搭配方案</view>
     <scroll-view class="outfits-scroll" scroll-x>
       <view class="outfit-card" wx:for="{{savedOutfits}}" wx:key="id" bindtap="loadOutfit" data-outfit="{{item}}">
+        <view class="outfit-card-preview">
+          <image wx:if="{{item.previewImage}}" class="outfit-thumb" src="{{item.previewImage}}" mode="aspectFill" />
+          <view wx:else class="outfit-thumb-placeholder">👔</view>
+        </view>
         <text class="outfit-name">{{item.name}}</text>
-        <text class="outfit-count">{{Object.keys(item.items).length}}件</text>
+        <text class="outfit-meta">{{item.itemCount}}件</text>
+        <text class="outfit-edit" catchtap="showEditOutfit" data-outfit="{{item}}">编辑</text>
         <text class="delete-outfit" catchtap="deleteOutfit" data-id="{{item.id}}">✕</text>
       </view>
     </scroll-view>
   </view>
+  <view class="empty-outfits" wx:elif="{{!loading && savedOutfits.length === 0}}">
+    <text class="empty-outfits-text">保存你的第一套搭配吧</text>
+  </view>
+  </block>
 </view>
 
-<!-- 保存搭配弹窗 -->
+<!-- 保存/编辑搭配弹窗 -->
 <view class="modal-mask" wx:if="{{showSaveDialog}}" bindtap="closeSaveDialog">
-  <view class="modal-content" catchtap="stopPropagation">
+  <view class="modal-content modal-content-large" catchtap="stopPropagation">
     <view class="modal-header">
-      <text class="modal-title">保存搭配</text>
+      <text class="modal-title">{{editingOutfitId ? '编辑搭配' : '保存搭配'}}</text>
       <text class="modal-close" bindtap="closeSaveDialog">✕</text>
     </view>
     
-    <view class="modal-body">
-      <input 
-        class="common-input"
-        placeholder="请输入搭配名称（如：上班通勤）"
-        value="{{outfitName}}"
-        bindinput="onOutfitNameInput"
-        maxlength="30"
-      />
-    </view>
+    <scroll-view class="modal-body" scroll-y>
+      <view class="form-item">
+        <text class="label">搭配名称<text class="required">*</text></text>
+        <input class="common-input" placeholder="如：上班通勤、周末休闲" value="{{outfitName}}" bindinput="onOutfitNameInput" maxlength="30" />
+      </view>
+      <view class="form-item">
+        <text class="label">适用场合</text>
+        <input class="common-input" placeholder="如：上班、休闲、约会" value="{{outfitOccasion}}" bindinput="onOutfitOccasionInput" />
+      </view>
+      <view class="form-item">
+        <text class="label">适用季节</text>
+        <input class="common-input" placeholder="如：春、夏、秋、冬" value="{{outfitSeason}}" bindinput="onOutfitSeasonInput" />
+      </view>
+    </scroll-view>
     
     <view class="modal-footer">
       <button class="modal-btn cancel" catchtap="closeSaveDialog">取消</button>

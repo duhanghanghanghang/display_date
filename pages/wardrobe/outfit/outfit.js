@@ -1,21 +1,26 @@
 // pages/wardrobe/outfit/outfit.js
-const app = getApp()
 const { request } = require('../../../utils/request')
 const { showToast } = require('../../../utils/toast')
+
+const OCCASIONS = ['上班', '休闲', '约会', '运动', '旅行', '居家', '其他']
+const SEASONS = ['春', '夏', '秋', '冬']
 
 Page({
   data: {
     categories: [],
     allItems: {},
-    selectedItems: {
-      // 结构：{ categoryId: itemId }
-    },
-    avatarParts: {
-      // 虚拟人物各部位的图片URL
-    },
+    selectedItems: {},
+    selectedCount: 0,
+    selectedForPreview: [],
     showSaveDialog: false,
     outfitName: '',
-    savedOutfits: []
+    outfitOccasion: '',
+    outfitSeason: '',
+    savedOutfits: [],
+    editingOutfitId: '',
+    occasions: OCCASIONS,
+    seasons: SEASONS,
+    loading: true
   },
 
   onLoad() {
@@ -23,149 +28,193 @@ Page({
   },
 
   async loadData() {
+    this.setData({ loading: true })
     try {
-      // 加载分类
-      const catRes = await request({
-        url: '/wardrobe/categories',
-        method: 'GET'
-      })
-      
-      const categories = catRes.categories.filter(cat => cat.count > 0)
-      this.setData({ categories })
+      const [catRes, itemsRes, outfitRes] = await Promise.all([
+        request({ url: '/wardrobe/categories', method: 'GET' }),
+        request({ url: '/wardrobe/items', method: 'GET', data: { size: 100 } }),
+        request({ url: '/wardrobe/outfits', method: 'GET' })
+      ])
 
-      // 加载所有衣服
-      const itemsRes = await request({
-        url: '/wardrobe/items',
-        method: 'GET'
-      })
-
-      // 按分类组织衣服
       const allItems = {}
-      itemsRes.items.forEach(item => {
-        if (!allItems[item.categoryId]) {
-          allItems[item.categoryId] = []
-        }
-        allItems[item.categoryId].push(item)
+      const itemMap = {}
+      ;(itemsRes.items || []).forEach(item => {
+        const cid = item.categoryId || ''
+        if (!allItems[cid]) allItems[cid] = []
+        allItems[cid].push(item)
+        itemMap[item.id] = item
       })
-      
-      this.setData({ allItems })
+      const categories = (catRes.categories || [])
+        .filter(cat => (cat.count || 0) > 0)
+        .map(cat => {
+          const items = allItems[cat.id] || []
+          return { ...cat, itemCount: items.length, items }
+        })
 
-      // 加载已保存的搭配
-      const outfitRes = await request({
-        url: '/wardrobe/outfits',
-        method: 'GET'
+      const savedOutfits = (outfitRes.outfits || []).map(o => {
+        const imgs = this._getOutfitPreviewImages(o.items, itemMap)
+        return {
+          ...o,
+          previewImages: imgs,
+          previewImage: imgs[0] || '',
+          itemCount: Object.keys(o.items || {}).length
+        }
       })
-      this.setData({ savedOutfits: outfitRes.outfits })
+
+      this.setData({
+        categories,
+        allItems,
+        savedOutfits,
+        loading: false
+      })
     } catch (err) {
       console.error('加载数据失败:', err)
       showToast('加载失败', 'error')
+      this.setData({ loading: false })
     }
   },
 
-  // 选择某个分类的衣服
   selectItem(e) {
     const { categoryId, itemId } = e.currentTarget.dataset
-    const { selectedItems } = this.data
-
-    if (selectedItems[categoryId] === itemId) {
-      // 取消选择
-      delete selectedItems[categoryId]
-    } else {
-      // 选择
-      selectedItems[categoryId] = itemId
-    }
-
-    this.setData({ selectedItems: { ...selectedItems } })
+    const { selectedItems, allItems, categories } = this.data
+    const next = { ...selectedItems }
+    if (next[categoryId] === itemId) delete next[categoryId]
+    else next[categoryId] = itemId
+    const preview = this._buildPreview(next, allItems, categories)
+    this.setData({ selectedItems: next, selectedCount: Object.keys(next).length, selectedForPreview: preview })
   },
 
-  // 显示保存搭配对话框
+  _buildPreview(selectedItems, allItems, categories) {
+    const list = []
+    ;(categories || []).forEach(cat => {
+      const itemId = selectedItems[cat.id]
+      if (!itemId) return
+      const items = allItems[cat.id] || []
+      const item = items.find(i => i.id === itemId)
+      if (item) list.push({ categoryName: cat.name, item })
+    })
+    return list
+  },
+
+  _getOutfitPreviewImages(items, itemMap) {
+    if (!items || !itemMap) return []
+    return Object.values(items)
+      .map(id => itemMap[id]?.imageUrl)
+      .filter(Boolean)
+  },
+
   showSave() {
-    const selectedCount = Object.keys(this.data.selectedItems).length
-    if (selectedCount === 0) {
+    if (Object.keys(this.data.selectedItems).length === 0) {
       showToast('请先选择衣服', 'error')
       return
     }
-    
-    this.setData({ 
+    this.setData({
       showSaveDialog: true,
-      outfitName: ''
+      editingOutfitId: '',
+      outfitName: '',
+      outfitOccasion: '',
+      outfitSeason: ''
     })
   },
 
   closeSaveDialog() {
-    this.setData({ showSaveDialog: false })
+    this.setData({ showSaveDialog: false, editingOutfitId: '' })
   },
 
-  stopPropagation() {
-    // 阻止事件冒泡
-  },
+  stopPropagation() {},
 
   onOutfitNameInput(e) {
     this.setData({ outfitName: e.detail.value })
   },
+  onOutfitOccasionInput(e) {
+    this.setData({ outfitOccasion: e.detail.value })
+  },
+  onOutfitSeasonInput(e) {
+    this.setData({ outfitSeason: e.detail.value })
+  },
 
-  // 保存搭配方案
   async saveOutfit() {
-    const { outfitName, selectedItems } = this.data
-
+    const { outfitName, outfitOccasion, outfitSeason, selectedItems, editingOutfitId } = this.data
     if (!outfitName || !outfitName.trim()) {
       showToast('请输入搭配名称', 'error')
       return
     }
-
+    const payload = {
+      name: outfitName.trim(),
+      items: { ...selectedItems },
+      occasion: outfitOccasion?.trim() || null,
+      season: outfitSeason?.trim() || null
+    }
     try {
-      await request({
-        url: '/wardrobe/outfits',
-        method: 'POST',
-        data: {
-          name: outfitName.trim(),
-          items: selectedItems
-        }
-      })
-
-      showToast('保存成功', 'success')
+      if (editingOutfitId) {
+        await request({
+          url: `/wardrobe/outfits/${editingOutfitId}`,
+          method: 'PATCH',
+          data: payload
+        })
+        showToast('修改成功', 'success')
+      } else {
+        await request({
+          url: '/wardrobe/outfits',
+          method: 'POST',
+          data: payload
+        })
+        showToast('保存成功', 'success')
+      }
       this.closeSaveDialog()
       this.loadData()
     } catch (err) {
-      console.error('保存失败:', err)
-      showToast('保存失败', 'error')
+      showToast(err?.data?.message || '保存失败', 'error')
     }
   },
 
-  // 加载已保存的搭配
   loadOutfit(e) {
     const { outfit } = e.currentTarget.dataset
-    this.setData({ selectedItems: outfit.items })
+    const items = outfit.items || {}
+    const preview = this._buildPreview(items, this.data.allItems, this.data.categories)
+    this.setData({ selectedItems: items, selectedCount: Object.keys(items).length, selectedForPreview: preview })
     showToast('已加载搭配', 'success')
   },
 
-  // 删除搭配
+  showEditOutfit(e) {
+    const { outfit } = e.currentTarget.dataset
+    const items = outfit.items || {}
+    const preview = this._buildPreview(items, this.data.allItems, this.data.categories)
+    this.setData({
+      showSaveDialog: true,
+      editingOutfitId: outfit.id,
+      outfitName: outfit.name || '',
+      outfitOccasion: outfit.occasion || '',
+      outfitSeason: outfit.season || '',
+      selectedItems: items,
+      selectedCount: Object.keys(items).length,
+      selectedForPreview: preview
+    })
+  },
+
   async deleteOutfit(e) {
     const { id } = e.currentTarget.dataset
-
-    const res = await wx.showModal({
+    wx.showModal({
       title: '提示',
-      content: '确定要删除这个搭配吗？'
-    })
-
-    if (res.confirm) {
-      try {
-        await request({
-          url: `/wardrobe/outfits/${id}`,
-          method: 'DELETE'
-        })
-        showToast('删除成功', 'success')
-        this.loadData()
-      } catch (err) {
-        console.error('删除失败:', err)
-        showToast('删除失败', 'error')
+      content: '确定要删除这个搭配吗？',
+      success: async (res) => {
+        if (!res.confirm) return
+        try {
+          await request({ url: `/wardrobe/outfits/${id}`, method: 'DELETE' })
+          showToast('删除成功', 'success')
+          this.loadData()
+        } catch (err) {
+          showToast('删除失败', 'error')
+        }
       }
-    }
+    })
   },
 
   // 清除所有选择
   clearSelection() {
-    this.setData({ selectedItems: {} })
+    this.setData({ selectedItems: {}, selectedCount: 0, selectedForPreview: [] })
     showToast('已清空', 'success')
-  }
+  },
+
+  onImageError() {}
 })

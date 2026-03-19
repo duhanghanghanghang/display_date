@@ -31,12 +31,22 @@ Page({
 
   onLoad(options) {
     if (options.categoryId) {
+      this._skipFirstShow = true
       this.setData({
         categoryId: options.categoryId,
         categoryName: decodeURIComponent(options.categoryName || '')
       })
       this.loadItems()
     }
+  },
+
+  onShow() {
+    if (!this.data.categoryId) return
+    if (this._skipFirstShow) {
+      this._skipFirstShow = false
+      return
+    }
+    this.loadItems()
   },
 
   async loadItems() {

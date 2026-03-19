@@ -17,17 +17,17 @@ Page({
     selectedCategoryId: '',
     selectedCategoryIndex: 0,
     itemForm: { name: '', imageUrl: '' },
-    outfitPreview: { imageUrl: '', outfitName: '', hasOutfit: false }
+    savedOutfits: []
   },
 
   onLoad() {
     this.loadCategories()
-    this.loadOutfitPreview()
+    this.loadSavedOutfits()
   },
 
   onShow() {
     this.loadCategories()
-    this.loadOutfitPreview()
+    this.loadSavedOutfits()
   },
 
   async loadCategories() {
@@ -39,40 +39,41 @@ Page({
     }
   },
 
-  async loadOutfitPreview() {
+  async loadSavedOutfits() {
     try {
-      const [outfitRes, itemsRes] = await Promise.all([
+      const [outfitRes, itemsRes, catRes] = await Promise.all([
         request({ url: '/wardrobe/outfits', method: 'GET' }),
-        request({ url: '/wardrobe/items', method: 'GET', data: { size: 50 } })
+        request({ url: '/wardrobe/items', method: 'GET', data: { size: 100 } }),
+        request({ url: '/wardrobe/categories', method: 'GET' })
       ])
       const outfits = outfitRes.outfits || []
       const items = itemsRes.items || []
+      const categories = catRes.categories || []
       const itemMap = {}
       items.forEach(i => { itemMap[i.id] = i })
 
-      let imageUrl = ''
-      let outfitName = ''
-      if (outfits.length > 0) {
-        const latest = outfits[0]
-        outfitName = latest.name || ''
-        const itemIds = latest.items ? Object.values(latest.items) : []
-        for (const id of itemIds) {
-          if (itemMap[id]?.imageUrl) {
-            imageUrl = itemMap[id].imageUrl
-            break
-          }
+      const savedOutfits = outfits.map(o => {
+        const previewImages = []
+        if (o.items && categories.length > 0) {
+          categories.forEach(cat => {
+            const itemId = o.items[cat.id]
+            if (itemId && itemMap[itemId]?.imageUrl && previewImages.length < 3) {
+              previewImages.push(itemMap[itemId].imageUrl)
+            }
+          })
         }
-      }
-
-      this.setData({
-        outfitPreview: {
-          imageUrl,
-          outfitName,
-          hasOutfit: outfits.length > 0
+        if (previewImages.length === 0 && o.items) {
+          Object.values(o.items).forEach(id => {
+            if (itemMap[id]?.imageUrl && previewImages.length < 3) {
+              previewImages.push(itemMap[id].imageUrl)
+            }
+          })
         }
+        return { ...o, previewImages, previewImage: previewImages[0] || '', itemCount: Object.keys(o.items || {}).length }
       })
+      this.setData({ savedOutfits })
     } catch (err) {
-      this.setData({ outfitPreview: { imageUrl: '', outfitName: '', hasOutfit: false } })
+      this.setData({ savedOutfits: [] })
     }
   },
 
@@ -142,11 +143,13 @@ Page({
     wx.navigateTo({ url: '/pages/wardrobe/item-list/item-list' })
   },
 
-  // 跳转到虚拟试衣
-  goToOutfit() {
-    wx.navigateTo({
-      url: '/pages/wardrobe/outfit/outfit'
-    })
+  goToOutfit(e) {
+    const outfit = e?.currentTarget?.dataset?.outfit
+    let url = '/pages/wardrobe/outfit/outfit'
+    if (outfit && outfit.id) {
+      url += '?outfitId=' + outfit.id
+    }
+    wx.navigateTo({ url })
   },
 
   // 显示添加衣服对话框

@@ -18,12 +18,15 @@ Page({
     outfitSeason: '',
     savedOutfits: [],
     editingOutfitId: '',
+    currentOutfitId: '',
+    currentOutfitName: '',
     occasions: OCCASIONS,
     seasons: SEASONS,
     loading: true
   },
 
-  onLoad() {
+  onLoad(options) {
+    this._preloadOutfitId = options.outfitId || ''
     this.loadData()
   },
 
@@ -38,7 +41,10 @@ Page({
 
       const allItems = {}
       const itemMap = {}
-      ;(itemsRes.items || []).forEach(item => {
+      ;(itemsRes.items || []).forEach(raw => {
+        if (!raw || !raw.id) return
+        const name = raw.name || ''
+        const item = { ...raw, placeholderText: name.substring(0, 2) || '?' }
         const cid = item.categoryId || ''
         if (!allItems[cid]) allItems[cid] = []
         allItems[cid].push(item)
@@ -47,24 +53,45 @@ Page({
       const categories = (catRes.categories || [])
         .filter(cat => (cat.count || 0) > 0)
         .map(cat => {
-          const items = allItems[cat.id] || []
-          return { ...cat, itemCount: items.length, items }
+          const items = (allItems[cat.id] || []).filter(i => i && i.id)
+          return { ...cat, itemCount: items.length, items, expanded: false }
         })
 
       const savedOutfits = (outfitRes.outfits || []).map(o => {
-        const imgs = this._getOutfitPreviewImages(o.items, itemMap)
+        const imgs = this._getOutfitPreviewImages(o.items, itemMap, categories)
+        const previewImages = imgs.slice(0, 3)
         return {
           ...o,
-          previewImages: imgs,
+          previewImages,
           previewImage: imgs[0] || '',
           itemCount: Object.keys(o.items || {}).length
         }
       })
 
+      let selectedItems = {}
+      let selectedForPreview = []
+      let currentOutfitId = ''
+      let currentOutfitName = ''
+      const preloadId = this._preloadOutfitId
+      if (preloadId) {
+        const outfit = savedOutfits.find(o => o.id === preloadId)
+        if (outfit && outfit.items) {
+          selectedItems = { ...outfit.items }
+          selectedForPreview = this._buildPreview(selectedItems, allItems, categories)
+          currentOutfitId = outfit.id
+          currentOutfitName = outfit.name || ''
+        }
+      }
+
       this.setData({
         categories,
         allItems,
         savedOutfits,
+        selectedItems,
+        selectedCount: Object.keys(selectedItems).length,
+        selectedForPreview,
+        currentOutfitId,
+        currentOutfitName,
         loading: false
       })
     } catch (err) {
@@ -82,6 +109,9 @@ Page({
     else next[categoryId] = itemId
     const preview = this._buildPreview(next, allItems, categories)
     this.setData({ selectedItems: next, selectedCount: Object.keys(next).length, selectedForPreview: preview })
+    if (Object.keys(next).length > 0) {
+      this.saveOutfitImmediate(next)
+    }
   },
 
   _buildPreview(selectedItems, allItems, categories) {
@@ -90,31 +120,115 @@ Page({
       const itemId = selectedItems[cat.id]
       if (!itemId) return
       const items = allItems[cat.id] || []
-      const item = items.find(i => i.id === itemId)
-      if (item) list.push({ categoryName: cat.name, item })
+      const item = items.find(i => i && i.id === itemId)
+      if (item) {
+        const name = item.name || ''
+        list.push({ categoryName: cat.name, item: { ...item }, placeholderText: (name.substring(0, 2) || '?') })
+      }
     })
     return list
   },
 
-  _getOutfitPreviewImages(items, itemMap) {
-    if (!items || !itemMap) return []
-    return Object.values(items)
-      .map(id => itemMap[id]?.imageUrl)
-      .filter(Boolean)
+  onPreviewImageError(e) {
+    const id = e.currentTarget.dataset.id
+    const { selectedForPreview } = this.data
+    const next = selectedForPreview.map(p => (p.item.id === id ? { ...p, item: { ...p.item, _imgFailed: true } } : p))
+    this.setData({ selectedForPreview: next })
   },
 
-  showSave() {
-    if (Object.keys(this.data.selectedItems).length === 0) {
-      showToast('请先选择衣服', 'error')
-      return
-    }
-    this.setData({
-      showSaveDialog: true,
-      editingOutfitId: '',
-      outfitName: '',
-      outfitOccasion: '',
-      outfitSeason: ''
+  toggleCategoryExpand(e) {
+    const id = e.currentTarget.dataset.id
+    const { categories } = this.data
+    const next = categories.map(c => (c.id === id ? { ...c, expanded: !c.expanded } : c))
+    this.setData({ categories: next })
+  },
+
+  onChipImageError(e) {
+    const { categoryId, itemId } = e.currentTarget.dataset
+    const { categories, allItems } = this.data
+    const nextCat = categories.map(cat => {
+      if (cat.id !== categoryId) return cat
+      return { ...cat, items: cat.items.map(it => (it.id === itemId ? { ...it, _imgFailed: true, placeholderText: it.placeholderText || ((it.name || '').substring(0, 2)) || '?' } : it)) }
     })
+    const nextAll = { ...allItems }
+    if (nextAll[categoryId]) {
+      nextAll[categoryId] = nextAll[categoryId].map(it => (it.id === itemId ? { ...it, _imgFailed: true } : it))
+    }
+    const preview = this._buildPreview(this.data.selectedItems, nextAll, nextCat)
+    this.setData({ categories: nextCat, allItems: nextAll, selectedForPreview: preview })
+  },
+
+  _getOutfitPreviewImages(items, itemMap, categories) {
+    if (!items || !itemMap) return []
+    if (!categories || categories.length === 0) {
+      return Object.values(items).map(id => itemMap[id]?.imageUrl).filter(Boolean)
+    }
+    const imgs = []
+    categories.forEach(cat => {
+      const itemId = items[cat.id]
+      if (itemId && itemMap[itemId]?.imageUrl) imgs.push(itemMap[itemId].imageUrl)
+    })
+    return imgs
+  },
+
+  _getNextDefaultName() {
+    const { savedOutfits } = this.data
+    const re = /^未定义的搭配(\d+)$/
+    let maxN = 0
+    ;(savedOutfits || []).forEach(o => {
+      const m = (o.name || '').match(re)
+      if (m) maxN = Math.max(maxN, parseInt(m[1], 10))
+    })
+    return `未定义的搭配${maxN + 1}`
+  },
+
+  async saveOutfitImmediate(selectedItems) {
+    const items = selectedItems || this.data.selectedItems
+    if (!items || Object.keys(items).length === 0) return
+    const { currentOutfitId, currentOutfitName, savedOutfits } = this.data
+    const name = currentOutfitId
+      ? (savedOutfits.find(o => o.id === currentOutfitId)?.name || currentOutfitName || this._getNextDefaultName())
+      : this._getNextDefaultName()
+    const payload = { name, items: { ...items } }
+    try {
+      if (currentOutfitId) {
+        await request({
+          url: `/wardrobe/outfits/${currentOutfitId}`,
+          method: 'PATCH',
+          data: payload
+        })
+      } else {
+        const res = await request({
+          url: '/wardrobe/outfits',
+          method: 'POST',
+          data: payload
+        })
+        this.setData({ currentOutfitId: res?.id || '', currentOutfitName: name })
+      }
+      await this._refreshOutfits()
+    } catch (err) {
+      showToast(err?.data?.message || '保存失败', 'error')
+    }
+  },
+
+  async _refreshOutfits() {
+    try {
+      const outfitRes = await request({ url: '/wardrobe/outfits', method: 'GET' })
+      const itemMap = {}
+      Object.values(this.data.allItems || {}).flat().forEach(i => { if (i?.id) itemMap[i.id] = i })
+      const categories = this.data.categories || []
+      const savedOutfits = (outfitRes.outfits || []).map(o => {
+        const imgs = this._getOutfitPreviewImages(o.items, itemMap, categories)
+        const previewImages = imgs.slice(0, 3)
+        return {
+          ...o,
+          previewImages,
+          previewImage: imgs[0] || '',
+          itemCount: Object.keys(o.items || {}).length
+        }
+      })
+      this.setData({ savedOutfits })
+    } catch (_) {}
   },
 
   closeSaveDialog() {
@@ -133,14 +247,15 @@ Page({
     this.setData({ outfitSeason: e.detail.value })
   },
 
-  async saveOutfit() {
+  async   saveOutfit() {
     const { outfitName, outfitOccasion, outfitSeason, selectedItems, editingOutfitId } = this.data
-    if (!outfitName || !outfitName.trim()) {
+    const name = (outfitName || '').trim()
+    if (!name) {
       showToast('请输入搭配名称', 'error')
       return
     }
     const payload = {
-      name: outfitName.trim(),
+      name,
       items: { ...selectedItems },
       occasion: outfitOccasion?.trim() || null,
       season: outfitSeason?.trim() || null
@@ -161,8 +276,9 @@ Page({
         })
         showToast('保存成功', 'success')
       }
+      this.setData({ currentOutfitName: name })
       this.closeSaveDialog()
-      this.loadData()
+      await this._refreshOutfits()
     } catch (err) {
       showToast(err?.data?.message || '保存失败', 'error')
     }
@@ -172,7 +288,13 @@ Page({
     const { outfit } = e.currentTarget.dataset
     const items = outfit.items || {}
     const preview = this._buildPreview(items, this.data.allItems, this.data.categories)
-    this.setData({ selectedItems: items, selectedCount: Object.keys(items).length, selectedForPreview: preview })
+    this.setData({
+      selectedItems: items,
+      selectedCount: Object.keys(items).length,
+      selectedForPreview: preview,
+      currentOutfitId: outfit.id || '',
+      currentOutfitName: outfit.name || ''
+    })
     showToast('已加载搭配', 'success')
   },
 
@@ -188,7 +310,9 @@ Page({
       outfitSeason: outfit.season || '',
       selectedItems: items,
       selectedCount: Object.keys(items).length,
-      selectedForPreview: preview
+      selectedForPreview: preview,
+      currentOutfitId: outfit.id || '',
+      currentOutfitName: outfit.name || ''
     })
   },
 
@@ -212,9 +336,14 @@ Page({
 
   // 清除所有选择
   clearSelection() {
-    this.setData({ selectedItems: {}, selectedCount: 0, selectedForPreview: [] })
+    this.setData({
+      selectedItems: {},
+      selectedCount: 0,
+      selectedForPreview: [],
+      currentOutfitId: '',
+      currentOutfitName: ''
+    })
     showToast('已清空', 'success')
   },
 
-  onImageError() {}
 })

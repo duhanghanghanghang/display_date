@@ -168,17 +168,37 @@
   color: #999;
 }
 
-.items-scroll {
-  white-space: nowrap;
-  height: 200rpx;
+.category-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.expand-btn {
+  font-size: 24rpx;
+  color: var(--primary-color, #4A90E2);
+}
+
+.items-row {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: hidden;
+  gap: 24rpx;
+  padding-bottom: 8rpx;
+}
+
+.items-row.expanded {
+  overflow-x: auto;
 }
 
 .item-chip {
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   width: 140rpx;
-  margin-right: 20rpx;
+  min-width: 140rpx;
+  flex-shrink: 0;
   text-align: center;
-  vertical-align: top;
 }
 
 .item-chip.selected {
@@ -190,12 +210,15 @@
 .chip-placeholder {
   width: 120rpx;
   height: 120rpx;
+  min-height: 120rpx;
   border-radius: 12rpx;
   margin: 0 auto 8rpx;
+  display: block;
 }
 
 .chip-image {
   border: 4rpx solid transparent;
+  background: #f0f0f0;
 }
 
 .item-chip.selected .chip-image {
@@ -255,7 +278,7 @@
 .outfit-card {
   position: relative;
   display: inline-block;
-  width: 180rpx;
+  width: 360rpx;
   min-height: 180rpx;
   background: #fff;
   border: 2rpx solid #eee;
@@ -272,11 +295,15 @@
   overflow: hidden;
   margin-bottom: 12rpx;
   background: #f5f5f5;
+  display: flex;
+  flex-direction: row;
 }
 
 .outfit-thumb {
-  width: 100%;
+  flex: 1;
+  width: 0;
   height: 100%;
+  min-width: 0;
 }
 
 .outfit-thumb-placeholder {

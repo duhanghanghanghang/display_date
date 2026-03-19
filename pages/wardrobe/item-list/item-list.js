@@ -22,9 +22,18 @@ Page({
   },
 
   onLoad(options) {
+    this._skipFirstShow = true
     const categoryId = options.category_id || options.categoryId || ''
     this.setData({ categoryId })
     this.loadCategories()
+    this.loadItems(true)
+  },
+
+  onShow() {
+    if (this._skipFirstShow) {
+      this._skipFirstShow = false
+      return
+    }
     this.loadItems(true)
   },
 

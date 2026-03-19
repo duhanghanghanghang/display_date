@@ -18,45 +18,42 @@
       <text>添加衣服</text>
     </button>
     
-    <button class="action-btn primary" bindtap="showAddCategory">
-      <text class="btn-icon">+</text>
-      <text>添加标签</text>
-    </button>
-    
-    <button class="action-btn secondary" bindtap="goToCategory">
-      <text class="btn-icon">📁</text>
-      <text>分类管理</text>
-    </button>
-    
-    <button class="action-btn secondary" bindtap="goToItemList">
-      <text class="btn-icon">📋</text>
-      <text>全部衣服</text>
-    </button>
-    
     <button class="action-btn secondary" bindtap="goToOutfit">
       <text class="btn-icon">👗</text>
       <text>虚拟试衣</text>
     </button>
   </view>
 
-  <!-- 虚拟试衣预览 -->
-  <view class="outfit-preview" bindtap="goToOutfit">
-    <view class="outfit-preview-inner">
-      <image wx:if="{{outfitPreview.imageUrl}}" class="outfit-preview-img" src="{{outfitPreview.imageUrl}}" mode="aspectFill" />
-      <view wx:else class="outfit-preview-placeholder">
-        <text class="outfit-preview-icon">👗</text>
-        <text class="outfit-preview-text">{{outfitPreview.hasOutfit ? '查看我的搭配' : '搭配你的造型'}}</text>
+  <!-- 虚拟试衣 - 全部搭配方案 -->
+  <view class="outfit-section">
+    <view class="outfit-section-title">我的搭配方案</view>
+    <scroll-view wx:if="{{savedOutfits.length > 0}}" class="outfit-list" scroll-x>
+      <view class="outfit-card" wx:for="{{savedOutfits}}" wx:key="id" bindtap="goToOutfit" data-outfit="{{item}}">
+        <view class="outfit-card-img-wrap">
+          <block wx:if="{{item.previewImages && item.previewImages.length > 0}}">
+            <image wx:for="{{item.previewImages}}" wx:key="*this" wx:for-item="img" class="outfit-card-img" src="{{img}}" mode="aspectFill" />
+          </block>
+          <view wx:else class="outfit-card-placeholder">👔</view>
+        </view>
+        <text class="outfit-card-name">{{item.name}}</text>
+        <text class="outfit-card-count">{{item.itemCount}}件</text>
       </view>
-      <view class="outfit-preview-mask">
-        <text class="outfit-preview-title">{{outfitPreview.outfitName || '虚拟试衣'}}</text>
-        <text class="outfit-preview-tip">点击进入</text>
+      <view class="outfit-card outfit-card-add" bindtap="goToOutfit">
+        <view class="outfit-card-add-inner">
+          <text class="outfit-card-add-icon">+</text>
+          <text class="outfit-card-add-text">新建搭配</text>
+        </view>
       </view>
+    </scroll-view>
+    <view wx:else class="outfit-empty" bindtap="goToOutfit">
+      <text class="outfit-empty-icon">👗</text>
+      <text class="outfit-empty-text">搭配你的造型，点击进入虚拟试衣</text>
     </view>
   </view>
 
   <!-- 提示文本 -->
   <view class="tip-text" wx:if="{{categories.length === 0}}">
-    <text>还没有衣服分类，点击"添加标签"开始吧～</text>
+    <text>还没有衣服分类，点击底部分类添加标签～</text>
   </view>
 </view>
 

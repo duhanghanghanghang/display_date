@@ -61,7 +61,7 @@ Page({
               method: 'DELETE'
             })
             showToast('已删除', 'success')
-            setTimeout(() => wx.navigateBack(), 1500)
+            setTimeout(() => wx.navigateBack(), 400)
           } catch (err) {
             showToast('删除失败', 'error')
           }

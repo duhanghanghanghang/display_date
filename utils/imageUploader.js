@@ -121,8 +121,9 @@ class ImageUploader {
   }
 
   /**
-   * 选择并上传衣服图片（3:4 裁剪）
-   * 流程：选图 -> 裁剪页预览确认 -> 上传
+   * 选择并上传衣服图片（3:4 比例）
+   * 优先使用 wx.cropImage 原生裁剪（基础库 2.26+），支持拖拽缩放
+   * 低版本降级到裁剪页
    */
   static chooseAndUploadWardrobe(options = {}) {
     return new Promise((resolve, reject) => {
@@ -131,15 +132,52 @@ class ImageUploader {
         count,
         sizeType,
         sourceType,
-        success: (res) => {
+        success: async (res) => {
           if (!res.tempFilePaths || res.tempFilePaths.length === 0) {
             reject(new Error('未选择图片'))
             return
           }
-          app.globalData.pendingCropPath = res.tempFilePaths[0]
-          app.globalData.wardrobeUploadResolve = resolve
-          app.globalData.wardrobeUploadReject = reject
-          wx.navigateTo({ url: '/pages/wardrobe/crop/crop' })
+          const tempPath = res.tempFilePaths[0]
+          let pathToUpload = tempPath
+
+          if (typeof wx.cropImage === 'function') {
+            try {
+              const cropRes = await new Promise((resCrop, rejCrop) => {
+                wx.cropImage({
+                  src: tempPath,
+                  cropScale: '3:4',
+                  success: resCrop,
+                  fail: rejCrop
+                })
+              })
+              pathToUpload = cropRes.tempFilePath
+            } catch (e) {
+              if (e.errMsg && !e.errMsg.includes('cancel')) {
+                console.warn('原生裁剪失败，使用原图:', e)
+              } else {
+                reject(new Error('已取消'))
+                return
+              }
+            }
+          } else {
+            app.globalData.pendingCropPath = tempPath
+            app.globalData.wardrobeUploadResolve = resolve
+            app.globalData.wardrobeUploadReject = reject
+            wx.navigateTo({ url: '/pages/wardrobe/crop/crop' })
+            return
+          }
+
+          wx.showLoading({ title: '上传中...', mask: true })
+          try {
+            const url = await this._uploadToWardrobe(pathToUpload)
+            wx.hideLoading()
+            wx.showToast({ title: '上传成功', icon: 'success', duration: 1500 })
+            resolve(url)
+          } catch (e) {
+            wx.hideLoading()
+            wx.showToast({ title: e.message || '上传失败', icon: 'none' })
+            reject(e)
+          }
         },
         fail: (err) => {
           if (err.errMsg && !err.errMsg.includes('cancel')) {
@@ -147,6 +185,41 @@ class ImageUploader {
           }
           reject(err)
         }
+      })
+    })
+  }
+
+  static _uploadToWardrobe(filePath) {
+    return new Promise((resolve, reject) => {
+      const openid = wx.getStorageSync('openid')
+      const baseURL = app.globalData.baseURL
+      if (!openid || !baseURL) {
+        reject(new Error('未登录或配置错误'))
+        return
+      }
+      const uploadUrl = baseURL + '/upload/wardrobe-image'
+      wx.uploadFile({
+        url: uploadUrl,
+        filePath,
+        name: 'file',
+        header: { 'X-OpenId': openid },
+        success: (res) => {
+          if (res.statusCode !== 200) {
+            reject(new Error('上传失败'))
+            return
+          }
+          try {
+            const data = JSON.parse(res.data)
+            if (data.code !== 200 || !data.data?.url) {
+              reject(new Error(data.message || '上传失败'))
+              return
+            }
+            resolve(data.data.url)
+          } catch {
+            reject(new Error('响应解析失败'))
+          }
+        },
+        fail: (e) => reject(new Error(e.errMsg || '上传失败'))
       })
     })
   }

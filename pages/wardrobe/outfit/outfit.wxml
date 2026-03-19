@@ -9,8 +9,8 @@
         <view class="preview-items">
           <view class="preview-item" wx:for="{{selectedForPreview}}" wx:key="item.id">
             <view class="preview-label">{{item.categoryName}}</view>
-            <image wx:if="{{item.item.imageUrl}}" class="preview-img" src="{{item.item.imageUrl}}" mode="aspectFill" binderror="onImageError" />
-            <view wx:else class="preview-placeholder">{{item.item.name.substring(0,2)}}</view>
+            <image wx:if="{{item.item.imageUrl && !item.item._imgFailed}}" class="preview-img" src="{{item.item.imageUrl}}" mode="aspectFill" binderror="onPreviewImageError" data-id="{{item.item.id}}" />
+            <view wx:else class="preview-placeholder">{{item.placeholderText}}</view>
           </view>
         </view>
       </block>
@@ -25,7 +25,6 @@
   <!-- 操作按钮 -->
   <view class="action-bar">
     <button class="action-btn clear" bindtap="clearSelection">清空</button>
-    <button class="action-btn save" bindtap="showSave">保存搭配</button>
   </view>
 
   <!-- 分类选择区 -->
@@ -37,10 +36,13 @@
     <view class="category-block" wx:for="{{categories}}" wx:key="id" wx:for-item="category">
       <view class="category-header">
         <text class="category-name">{{category.name}}</text>
-        <text class="category-count">{{category.itemCount}}件</text>
+        <view class="category-header-right">
+          <text class="category-count">{{category.itemCount}}件</text>
+          <text wx:if="{{category.itemCount > 4}}" class="expand-btn" bindtap="toggleCategoryExpand" data-id="{{category.id}}">{{category.expanded ? '收起' : '展开'}}</text>
+        </view>
       </view>
       
-      <scroll-view class="items-scroll" scroll-x>
+      <view class="items-row {{category.expanded ? 'expanded' : ''}}">
         <view class="item-chip" 
               wx:for="{{category.items}}" 
               wx:key="id"
@@ -49,13 +51,13 @@
               bindtap="selectItem"
               data-category-id="{{category.id}}"
               data-item-id="{{item.id}}">
-          <image wx:if="{{item.imageUrl}}" class="chip-image" src="{{item.imageUrl}}" mode="aspectFill" />
+          <image wx:if="{{item.imageUrl && !item._imgFailed}}" class="chip-image" src="{{item.imageUrl}}" mode="aspectFill" binderror="onChipImageError" data-category-id="{{category.id}}" data-item-id="{{item.id}}" />
           <view wx:else class="chip-placeholder">
-            <text>{{item.name.substring(0, 2)}}</text>
+            <text>{{item.placeholderText}}</text>
           </view>
-          <text class="chip-name">{{item.name}}</text>
+          <text class="chip-name">{{item.name || '未命名'}}</text>
         </view>
-      </scroll-view>
+      </view>
     </view>
   </scroll-view>
   </view>
@@ -66,7 +68,9 @@
     <scroll-view class="outfits-scroll" scroll-x>
       <view class="outfit-card" wx:for="{{savedOutfits}}" wx:key="id" bindtap="loadOutfit" data-outfit="{{item}}">
         <view class="outfit-card-preview">
-          <image wx:if="{{item.previewImage}}" class="outfit-thumb" src="{{item.previewImage}}" mode="aspectFill" />
+          <block wx:if="{{item.previewImages && item.previewImages.length > 0}}">
+            <image wx:for="{{item.previewImages}}" wx:key="*this" wx:for-item="img" class="outfit-thumb" src="{{img}}" mode="aspectFill" />
+          </block>
           <view wx:else class="outfit-thumb-placeholder">👔</view>
         </view>
         <text class="outfit-name">{{item.name}}</text>

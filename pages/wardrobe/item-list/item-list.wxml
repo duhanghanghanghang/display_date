@@ -15,7 +15,9 @@
 
   <view class="list" wx:if="{{items.length > 0}}">
     <view class="item-card" wx:for="{{items}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
-      <image class="item-img" src="{{item.imageUrl}}" mode="aspectFill" />
+      <image wx:if="{{item.imageUrl && !item._imgFailed}}" class="item-img" src="{{item.imageUrl}}" mode="aspectFill" binderror="onImageError" data-id="{{item.id}}" />
+      <view wx:elif="{{item.imageUrl && item._imgFailed}}" class="item-img item-img-failed">图片加载失败</view>
+      <view wx:else class="item-img item-img-failed">无图片</view>
       <text class="item-name">{{item.name}}</text>
       <text class="item-meta">{{item.categoryName || '-'}} · {{item.season || '-'}}</text>
     </view>

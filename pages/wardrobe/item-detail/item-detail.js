@@ -45,6 +45,10 @@ Page({
     })
   },
 
+  onImageError() {
+    this.setData({ 'item._imgFailed': true })
+  },
+
   deleteItem() {
     wx.showModal({
       title: '确认删除',

@@ -1,7 +1,13 @@
 <!--pages/wardrobe/item-detail/item-detail.wxml-->
 <view class="container" wx:if="{{!loading && item}}">
-  <view class="image-wrap" bindtap="previewImage">
-    <image class="main-img" src="{{item.imageUrl}}" mode="aspectFill" />
+  <view class="image-wrap" wx:if="{{item.imageUrl && !item._imgFailed}}" bindtap="previewImage">
+    <image class="main-img" src="{{item.imageUrl}}" mode="aspectFill" binderror="onImageError" />
+  </view>
+  <view class="image-wrap image-failed" wx:elif="{{item.imageUrl}}">
+    <text>图片加载失败</text>
+  </view>
+  <view class="image-wrap image-failed" wx:else>
+    <text>无图片</text>
   </view>
 
   <view class="info-card">

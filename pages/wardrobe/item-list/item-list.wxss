@@ -39,6 +39,14 @@
   background: #f0f0f0;
 }
 
+.item-img-failed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  color: #999;
+}
+
 .item-name {
   display: block;
   padding: 12rpx;

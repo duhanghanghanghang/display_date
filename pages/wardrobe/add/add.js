@@ -224,5 +224,13 @@ Page({
     wx.navigateTo({
       url: `/pages/wardrobe/item-detail/item-detail?id=${id}`
     })
+  },
+
+  onImageError(e) {
+    const id = e.currentTarget.dataset.id
+    const items = this.data.items.map(it =>
+      it.id === id ? { ...it, _imgFailed: true } : it
+    )
+    this.setData({ items })
   }
 })

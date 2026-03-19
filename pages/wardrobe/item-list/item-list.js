@@ -123,5 +123,13 @@ Page({
 
   onPullDownRefresh() {
     this.loadItems(true).then(() => wx.stopPullDownRefresh())
+  },
+
+  onImageError(e) {
+    const id = e.currentTarget.dataset.id
+    const items = this.data.items.map(it =>
+      it.id === id ? { ...it, _imgFailed: true } : it
+    )
+    this.setData({ items })
   }
 })

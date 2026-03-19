@@ -96,6 +96,7 @@
 /* 虚拟试衣 - 全部搭配方案 */
 .outfit-section {
   margin-bottom: 40rpx;
+  padding: 0 2px;
 }
 
 .outfit-section-title {
@@ -106,37 +107,37 @@
 }
 
 .outfit-list {
-  white-space: nowrap;
   padding-bottom: 8rpx;
 }
 
 .outfit-card {
-  display: inline-block;
-  width: 360rpx;
-  margin-right: 20rpx;
-  vertical-align: top;
+  display: block;
+  width: 100%;
+  margin-bottom: 20rpx;
 }
 
 .outfit-card-img-wrap {
-  width: 360rpx;
-  height: 240rpx;
+  width: 100%;
+  padding: 0 2px;
   border-radius: 16rpx;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.2);
   display: flex;
-  flex-direction: row;
+  gap: 2px;
+  aspect-ratio: 2 / 1;
 }
 
 .outfit-card-img {
   flex: 1;
   width: 0;
-  height: 100%;
   min-width: 0;
+  height: 100%;
 }
 
 .outfit-card-placeholder {
-  width: 100%;
-  height: 100%;
+  flex: 1;
+  width: 0;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -160,14 +161,13 @@
   margin-top: 4rpx;
 }
 
-.outfit-card-add {
-  width: 180rpx;
-  margin-right: 0;
+.outfit-add-row {
+  margin-top: 20rpx;
 }
 
 .outfit-card-add-inner {
-  width: 180rpx;
-  height: 240rpx;
+  width: 100%;
+  aspect-ratio: 2 / 1;
   border-radius: 16rpx;
   border: 2rpx dashed rgba(255, 255, 255, 0.5);
   display: flex;

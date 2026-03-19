@@ -27,24 +27,26 @@
   <!-- 虚拟试衣 - 全部搭配方案 -->
   <view class="outfit-section">
     <view class="outfit-section-title">我的搭配方案</view>
-    <scroll-view wx:if="{{savedOutfits.length > 0}}" class="outfit-list" scroll-x>
-      <view class="outfit-card" wx:for="{{savedOutfits}}" wx:key="id" bindtap="goToOutfit" data-outfit="{{item}}">
-        <view class="outfit-card-img-wrap">
-          <block wx:if="{{item.previewImages && item.previewImages.length > 0}}">
-            <image wx:for="{{item.previewImages}}" wx:key="*this" wx:for-item="img" class="outfit-card-img" src="{{img}}" mode="aspectFill" />
-          </block>
-          <view wx:else class="outfit-card-placeholder">👔</view>
+    <block wx:if="{{savedOutfits.length > 0}}">
+      <view class="outfit-list">
+        <view class="outfit-card" wx:for="{{savedOutfits}}" wx:key="id" bindtap="goToOutfit" data-outfit="{{item}}">
+          <view class="outfit-card-img-wrap">
+            <block wx:if="{{item.previewImages && item.previewImages.length > 0}}">
+              <image wx:for="{{item.previewImages}}" wx:key="*this" wx:for-item="img" class="outfit-card-img" src="{{img}}" mode="aspectFill" />
+            </block>
+            <view wx:else class="outfit-card-placeholder">👔</view>
+          </view>
+          <text class="outfit-card-name">{{item.name}}</text>
+          <text class="outfit-card-count">{{item.itemCount}}件</text>
         </view>
-        <text class="outfit-card-name">{{item.name}}</text>
-        <text class="outfit-card-count">{{item.itemCount}}件</text>
       </view>
-      <view class="outfit-card outfit-card-add" bindtap="goToOutfit">
+      <view class="outfit-add-row" bindtap="goToOutfit">
         <view class="outfit-card-add-inner">
           <text class="outfit-card-add-icon">+</text>
           <text class="outfit-card-add-text">新建搭配</text>
         </view>
       </view>
-    </scroll-view>
+    </block>
     <view wx:else class="outfit-empty" bindtap="goToOutfit">
       <text class="outfit-empty-icon">👗</text>
       <text class="outfit-empty-text">搭配你的造型，点击进入虚拟试衣</text>

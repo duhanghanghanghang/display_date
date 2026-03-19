@@ -57,14 +57,14 @@ Page({
         if (o.items && categories.length > 0) {
           categories.forEach(cat => {
             const itemId = o.items[cat.id]
-            if (itemId && itemMap[itemId]?.imageUrl && previewImages.length < 3) {
+            if (itemId && itemMap[itemId]?.imageUrl && previewImages.length < 2) {
               previewImages.push(itemMap[itemId].imageUrl)
             }
           })
         }
         if (previewImages.length === 0 && o.items) {
           Object.values(o.items).forEach(id => {
-            if (itemMap[id]?.imageUrl && previewImages.length < 3) {
+            if (itemMap[id]?.imageUrl && previewImages.length < 2) {
               previewImages.push(itemMap[id].imageUrl)
             }
           })

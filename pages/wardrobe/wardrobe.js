@@ -16,7 +16,7 @@ Page({
     showAddItemDialog: false,
     selectedCategoryId: '',
     selectedCategoryIndex: 0,
-    itemForm: { name: '', imageUrl: '' },
+    itemForm: { name: '', imageUrl: '', price: '' },
     savedOutfits: []
   },
 
@@ -54,22 +54,25 @@ Page({
 
       const savedOutfits = outfits.map(o => {
         const previewImages = []
+        let validCount = 0
         if (o.items && categories.length > 0) {
           categories.forEach(cat => {
             const itemId = o.items[cat.id]
-            if (itemId && itemMap[itemId]?.imageUrl && previewImages.length < 2) {
-              previewImages.push(itemMap[itemId].imageUrl)
+            if (itemId && itemMap[itemId]?.imageUrl) {
+              validCount++
+              if (previewImages.length < 3) previewImages.push(itemMap[itemId].imageUrl)
             }
           })
         }
         if (previewImages.length === 0 && o.items) {
           Object.values(o.items).forEach(id => {
-            if (itemMap[id]?.imageUrl && previewImages.length < 2) {
-              previewImages.push(itemMap[id].imageUrl)
+            if (itemMap[id]?.imageUrl) {
+              validCount++
+              if (previewImages.length < 3) previewImages.push(itemMap[id].imageUrl)
             }
           })
         }
-        return { ...o, previewImages, previewImage: previewImages[0] || '', itemCount: Object.keys(o.items || {}).length }
+        return { ...o, previewImages, previewImage: previewImages[0] || '', itemCount: validCount }
       })
       this.setData({ savedOutfits })
     } catch (err) {
@@ -165,7 +168,8 @@ Page({
       selectedCategoryIndex: 0,
       itemForm: {
         name: '',
-        imageUrl: ''
+        imageUrl: '',
+        price: ''
       }
     })
   },
@@ -188,6 +192,13 @@ Page({
   onItemNameInput(e) {
     this.setData({
       'itemForm.name': e.detail.value
+    })
+  },
+
+  // 输入价格
+  onItemPriceInput(e) {
+    this.setData({
+      'itemForm.price': e.detail.value
     })
   },
 
@@ -255,7 +266,8 @@ Page({
       const requestData = {
         categoryId: selectedCategoryId,
         name: itemForm.name.trim(),
-        imageUrl: itemForm.imageUrl
+        imageUrl: itemForm.imageUrl,
+        price: itemForm.price ? parseFloat(itemForm.price) : null
       }
       
       console.log('📝 发送请求:', requestData)

@@ -2,22 +2,21 @@
 <view class="outfit-container">
   <view wx:if="{{loading}}" class="loading-tip">加载中...</view>
   <block wx:else>
-  <!-- 搭配预览区 -->
+  <!-- 搭配预览区：垂直拼接，可点击单张调整比例 -->
   <view class="avatar-section">
-    <view class="preview-area">
-      <block wx:if="{{selectedForPreview.length > 0}}">
-        <view class="preview-items">
-          <view class="preview-item" wx:for="{{selectedForPreview}}" wx:key="item.id">
-            <view class="preview-label">{{item.categoryName}}</view>
-            <image wx:if="{{item.item.imageUrl && !item.item._imgFailed}}" class="preview-img" src="{{item.item.imageUrl}}" mode="aspectFill" binderror="onPreviewImageError" data-id="{{item.item.id}}" />
-            <view wx:else class="preview-placeholder">{{item.placeholderText}}</view>
-          </view>
-        </view>
-      </block>
-      <view wx:else class="preview-empty">
-        <text class="preview-empty-icon">👔</text>
-        <text class="preview-empty-text">在下方选择衣服，搭配你的造型</text>
+    <view class="preview-area" wx:if="{{selectedForPreview.length > 0}}">
+      <view class="preview-slot" wx:for="{{selectedForPreview}}" wx:key="item.item.id"
+            wx:if="{{item.item.imageUrl && !item.item._imgFailed}}"
+            style="height: {{((itemHeights[item.item.id] || 200) * (itemScales[item.item.id] || 0.6))}}rpx"
+            bindtap="onPreviewSlotTap" data-index="{{index}}" data-item="{{item}}">
+        <image class="preview-slot-img" src="{{item.item.imageUrl}}" mode="widthFix"
+               style="transform: scale({{itemScales[item.item.id] || 0.6}}); transform-origin: top center"
+               bindload="onPreviewImageLoad" binderror="onPreviewImageError" data-id="{{item.item.id}}" />
       </view>
+    </view>
+    <view wx:else class="preview-empty">
+      <text class="preview-empty-icon">👔</text>
+      <text class="preview-empty-text">在下方选择衣服，搭配你的造型</text>
     </view>
     <view class="selection-count">已选择 {{selectedCount}} 件</view>
   </view>
@@ -112,6 +111,25 @@
     <view class="modal-footer">
       <button class="modal-btn cancel" catchtap="closeSaveDialog">取消</button>
       <button class="modal-btn confirm" catchtap="saveOutfit">保存</button>
+    </view>
+  </view>
+</view>
+
+<!-- 比例调整弹窗 -->
+<view class="modal-mask" wx:if="{{showScaleModal}}" bindtap="closeScaleModal">
+  <view class="modal-content" catchtap="stopPropagation">
+    <view class="modal-header">
+      <text class="modal-title">调整比例</text>
+      <text class="modal-close" bindtap="closeScaleModal">✕</text>
+    </view>
+    <view class="modal-body">
+      <text class="scale-label">{{editingScaleItem ? editingScaleItem.categoryName + ' ' + (editingScaleItem.item.name || '') : ''}}</text>
+      <slider min="50" max="150" value="{{editingScaleValue * 100}}" step="5" show-value bindchange="onScaleSliderChange" />
+      <text class="scale-hint">50%-150%，可调整该图片的显示比例</text>
+    </view>
+    <view class="modal-footer">
+      <button class="modal-btn cancel" catchtap="closeScaleModal">取消</button>
+      <button class="modal-btn confirm" catchtap="confirmScaleAdjust">确定</button>
     </view>
   </view>
 </view>

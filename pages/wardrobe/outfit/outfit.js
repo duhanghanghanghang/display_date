@@ -1,9 +1,11 @@
 // pages/wardrobe/outfit/outfit.js
 const { request } = require('../../../utils/request')
 const { showToast } = require('../../../utils/toast')
+const { sortByLayer } = require('../../../utils/virtualTryon')
 
 const OCCASIONS = ['上班', '休闲', '约会', '运动', '旅行', '居家', '其他']
 const SEASONS = ['春', '夏', '秋', '冬']
+const PREVIEW_WIDTH_RPX = 620
 
 Page({
   data: {
@@ -12,7 +14,12 @@ Page({
     selectedItems: {},
     selectedCount: 0,
     selectedForPreview: [],
+    itemHeights: {},
+    itemScales: {},
     showSaveDialog: false,
+    showScaleModal: false,
+    editingScaleItem: null,
+    editingScaleValue: 0.6,
     outfitName: '',
     outfitOccasion: '',
     outfitSeason: '',
@@ -64,7 +71,7 @@ Page({
           ...o,
           previewImages,
           previewImage: imgs[0] || '',
-          itemCount: Object.keys(o.items || {}).length
+          itemCount: imgs.length
         }
       })
 
@@ -76,24 +83,33 @@ Page({
       if (preloadId) {
         const outfit = savedOutfits.find(o => o.id === preloadId)
         if (outfit && outfit.items) {
-          selectedItems = { ...outfit.items }
+          selectedItems = this._filterValidSelectedItems(outfit.items, allItems, categories)
           selectedForPreview = this._buildPreview(selectedItems, allItems, categories)
           currentOutfitId = outfit.id
           currentOutfitName = outfit.name || ''
+          if (Object.keys(selectedItems).length !== Object.keys(outfit.items).length) {
+            this._preloadOutfitId = outfit.id
+            this._needSyncOutfit = true
+          }
         }
       }
 
+      const sortedPreview = sortByLayer(selectedForPreview)
       this.setData({
         categories,
         allItems,
         savedOutfits,
         selectedItems,
-        selectedCount: Object.keys(selectedItems).length,
-        selectedForPreview,
+        selectedCount: selectedForPreview.length,
+        selectedForPreview: sortedPreview,
         currentOutfitId,
         currentOutfitName,
         loading: false
       })
+      if (this._needSyncOutfit && Object.keys(selectedItems).length > 0) {
+        this._needSyncOutfit = false
+        this.saveOutfitImmediate(selectedItems)
+      }
     } catch (err) {
       console.error('加载数据失败:', err)
       showToast('加载失败', 'error')
@@ -108,7 +124,12 @@ Page({
     if (next[categoryId] === itemId) delete next[categoryId]
     else next[categoryId] = itemId
     const preview = this._buildPreview(next, allItems, categories)
-    this.setData({ selectedItems: next, selectedCount: Object.keys(next).length, selectedForPreview: preview })
+    const sortedPreview = sortByLayer(preview)
+    this.setData({
+      selectedItems: next,
+      selectedCount: Object.keys(next).length,
+      selectedForPreview: sortedPreview
+    })
     if (Object.keys(next).length > 0) {
       this.saveOutfitImmediate(next)
     }
@@ -129,6 +150,27 @@ Page({
     return list
   },
 
+  /** 过滤掉已删除的衣服，只保留仍存在的 */
+  _filterValidSelectedItems(selectedItems, allItems, categories) {
+    const valid = {}
+    ;(categories || []).forEach(cat => {
+      const itemId = selectedItems[cat.id]
+      if (!itemId) return
+      const items = allItems[cat.id] || []
+      const item = items.find(i => i && i.id === itemId)
+      if (item) valid[cat.id] = itemId
+    })
+    return valid
+  },
+
+  onPreviewImageLoad(e) {
+    const id = e.currentTarget.dataset.id
+    const { width, height } = e.detail
+    if (!width || !height) return
+    const displayHeight = Math.round(PREVIEW_WIDTH_RPX * (height / width))
+    this.setData({ [`itemHeights.${id}`]: displayHeight })
+  },
+
   onPreviewImageError(e) {
     const id = e.currentTarget.dataset.id
     const { selectedForPreview } = this.data
@@ -143,6 +185,37 @@ Page({
     this.setData({ categories: next })
   },
 
+  onPreviewSlotTap(e) {
+    const item = e.currentTarget.dataset.item
+    if (!item?.item?.id) return
+    const scale = this.data.itemScales[item.item.id] ?? 0.6
+    this.setData({
+      showScaleModal: true,
+      editingScaleItem: item,
+      editingScaleValue: scale
+    })
+  },
+
+  onScaleSliderChange(e) {
+    const val = parseFloat(e.detail.value)
+    this.setData({ editingScaleValue: isNaN(val) ? 0.6 : val / 100 })
+  },
+
+  confirmScaleAdjust() {
+    const { editingScaleItem, editingScaleValue, itemScales } = this.data
+    if (!editingScaleItem?.item?.id) return
+    const next = { ...itemScales, [editingScaleItem.item.id]: editingScaleValue }
+    this.setData({
+      itemScales: next,
+      showScaleModal: false,
+      editingScaleItem: null
+    })
+  },
+
+  closeScaleModal() {
+    this.setData({ showScaleModal: false, editingScaleItem: null })
+  },
+
   onChipImageError(e) {
     const { categoryId, itemId } = e.currentTarget.dataset
     const { categories, allItems } = this.data
@@ -155,7 +228,12 @@ Page({
       nextAll[categoryId] = nextAll[categoryId].map(it => (it.id === itemId ? { ...it, _imgFailed: true } : it))
     }
     const preview = this._buildPreview(this.data.selectedItems, nextAll, nextCat)
-    this.setData({ categories: nextCat, allItems: nextAll, selectedForPreview: preview })
+    const sortedPreview = sortByLayer(preview)
+    this.setData({
+      categories: nextCat,
+      allItems: nextAll,
+      selectedForPreview: sortedPreview
+    })
   },
 
   _getOutfitPreviewImages(items, itemMap, categories) {
@@ -224,7 +302,7 @@ Page({
           ...o,
           previewImages,
           previewImage: imgs[0] || '',
-          itemCount: Object.keys(o.items || {}).length
+          itemCount: imgs.length
         }
       })
       this.setData({ savedOutfits })
@@ -286,22 +364,31 @@ Page({
 
   loadOutfit(e) {
     const { outfit } = e.currentTarget.dataset
-    const items = outfit.items || {}
+    const rawItems = outfit.items || {}
+    const items = this._filterValidSelectedItems(rawItems, this.data.allItems, this.data.categories)
     const preview = this._buildPreview(items, this.data.allItems, this.data.categories)
+    const needSync = Object.keys(items).length !== Object.keys(rawItems).length
+    const sortedPreview = sortByLayer(preview)
     this.setData({
       selectedItems: items,
-      selectedCount: Object.keys(items).length,
-      selectedForPreview: preview,
+      selectedCount: preview.length,
+      selectedForPreview: sortedPreview,
       currentOutfitId: outfit.id || '',
       currentOutfitName: outfit.name || ''
+    }, () => {
+      if (needSync && Object.keys(items).length > 0) {
+        this.saveOutfitImmediate(items)
+      }
     })
     showToast('已加载搭配', 'success')
   },
 
   showEditOutfit(e) {
     const { outfit } = e.currentTarget.dataset
-    const items = outfit.items || {}
+    const rawItems = outfit.items || {}
+    const items = this._filterValidSelectedItems(rawItems, this.data.allItems, this.data.categories)
     const preview = this._buildPreview(items, this.data.allItems, this.data.categories)
+    const sortedPreview = sortByLayer(preview)
     this.setData({
       showSaveDialog: true,
       editingOutfitId: outfit.id,
@@ -309,8 +396,8 @@ Page({
       outfitOccasion: outfit.occasion || '',
       outfitSeason: outfit.season || '',
       selectedItems: items,
-      selectedCount: Object.keys(items).length,
-      selectedForPreview: preview,
+      selectedCount: preview.length,
+      selectedForPreview: sortedPreview,
       currentOutfitId: outfit.id || '',
       currentOutfitName: outfit.name || ''
     })
@@ -340,6 +427,8 @@ Page({
       selectedItems: {},
       selectedCount: 0,
       selectedForPreview: [],
+      itemHeights: {},
+      itemScales: {},
       currentOutfitId: '',
       currentOutfitName: ''
     })

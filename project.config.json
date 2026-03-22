@@ -48,7 +48,7 @@
     "disableSWC": true
   },
   "compileType": "miniprogram",
-  "libVersion": "2.25.4",
+  "libVersion": "2.26.0",
   "appid": "wx5ad3bf879ec671a6",
   "projectname": "expiry-reminder",
   "condition": {},

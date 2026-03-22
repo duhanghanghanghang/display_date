@@ -124,7 +124,7 @@
   background: rgba(255, 255, 255, 0.2);
   display: flex;
   gap: 2px;
-  aspect-ratio: 2 / 1;
+  aspect-ratio: 3 / 1;
 }
 
 .outfit-card-img {
@@ -167,7 +167,7 @@
 
 .outfit-card-add-inner {
   width: 100%;
-  aspect-ratio: 2 / 1;
+  aspect-ratio: 3 / 1;
   border-radius: 16rpx;
   border: 2rpx dashed rgba(255, 255, 255, 0.5);
   display: flex;

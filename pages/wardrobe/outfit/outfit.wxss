@@ -25,7 +25,36 @@
 }
 
 .preview-area {
-  min-height: 200rpx;
+  display: flex;
+  flex-direction: column;
+  border-radius: 16rpx;
+  overflow: hidden;
+  background: #f8f8f8;
+}
+
+.preview-slot {
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+}
+
+.preview-slot-img {
+  width: 100%;
+  display: block;
+}
+
+.scale-label {
+  display: block;
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.scale-hint {
+  display: block;
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 16rpx;
 }
 
 .preview-items {

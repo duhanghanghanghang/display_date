@@ -128,6 +128,18 @@
           maxlength="50"
         />
       </view>
+
+      <!-- 价格 -->
+      <view class="form-item">
+        <text class="label">购买价格</text>
+        <input 
+          class="input" 
+          type="digit" 
+          placeholder="选填，如：199" 
+          value="{{itemForm.price}}" 
+          bindinput="onItemPriceInput"
+        />
+      </view>
     </scroll-view>
     
     <view class="modal-footer">

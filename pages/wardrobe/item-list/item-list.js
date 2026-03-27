@@ -1,6 +1,6 @@
 // pages/wardrobe/item-list/item-list.js
 const { request } = require('../../../utils/request')
-const { COLORS_FILTER, SEASONS_FILTER } = require('../../../utils/constants')
+const { COLORS_FILTER, SEASONS_FILTER, WEAR_FLAGS } = require('../../../utils/constants')
 
 Page({
   data: {
@@ -13,6 +13,13 @@ Page({
     seasonIndex: 0,
     season: '',
     seasons: SEASONS_FILTER,
+    wearFlagLabels: WEAR_FLAGS.map(f => f.label),
+    wearFlagIndex: 0,
+    wearFlagValue: '',
+    q: '',
+    minPrice: '',
+    maxPrice: '',
+    tagsFilter: '',
     items: [],
     total: 0,
     page: 1,
@@ -57,9 +64,15 @@ Page({
     this.setData({ loading: true })
     try {
       let url = `/wardrobe/items?page=${page}&size=${this.data.size}`
-      if (this.data.categoryId) url += `&category_id=${this.data.categoryId}`
-      if (this.data.color) url += `&color=${encodeURIComponent(this.data.color)}`
-      if (this.data.season) url += `&season=${encodeURIComponent(this.data.season)}`
+      const d = this.data
+      if (d.categoryId) url += `&category_id=${d.categoryId}`
+      if (d.color) url += `&color=${encodeURIComponent(d.color)}`
+      if (d.season) url += `&season=${encodeURIComponent(d.season)}`
+      if (d.q && d.q.trim()) url += `&q=${encodeURIComponent(d.q.trim())}`
+      if (d.minPrice) url += `&min_price=${encodeURIComponent(d.minPrice)}`
+      if (d.maxPrice) url += `&max_price=${encodeURIComponent(d.maxPrice)}`
+      if (d.tagsFilter && d.tagsFilter.trim()) url += `&tags=${encodeURIComponent(d.tagsFilter.trim())}`
+      if (d.wearFlagValue) url += `&wear_flag=${encodeURIComponent(d.wearFlagValue)}`
 
       const res = await request({ url, method: 'GET' })
       const items = res.items || []
@@ -101,6 +114,37 @@ Page({
     this.loadItems(true)
   },
 
+  onWearFlagChange(e) {
+    const idx = parseInt(e.detail.value, 10)
+    const f = WEAR_FLAGS[idx]
+    this.setData({ wearFlagIndex: idx, wearFlagValue: f ? f.value : '' })
+    this.loadItems(true)
+  },
+
+  onSearchInput(e) {
+    this.setData({ q: e.detail.value })
+  },
+
+  onSearchConfirm() {
+    this.loadItems(true)
+  },
+
+  onMinPrice(e) {
+    this.setData({ minPrice: e.detail.value })
+  },
+
+  onMaxPrice(e) {
+    this.setData({ maxPrice: e.detail.value })
+  },
+
+  onTagsFilter(e) {
+    this.setData({ tagsFilter: e.detail.value })
+  },
+
+  onApplyFilter() {
+    this.loadItems(true)
+  },
+
   resetFilter() {
     this.setData({
       categoryIndex: 0,
@@ -108,7 +152,13 @@ Page({
       colorIndex: 0,
       color: '',
       seasonIndex: 0,
-      season: ''
+      season: '',
+      wearFlagIndex: 0,
+      wearFlagValue: '',
+      q: '',
+      minPrice: '',
+      maxPrice: '',
+      tagsFilter: ''
     })
     this.loadItems(true)
   },

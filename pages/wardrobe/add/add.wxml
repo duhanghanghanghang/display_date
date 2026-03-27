@@ -101,6 +101,18 @@
       </view>
 
       <view class="form-item">
+        <text class="label">标签</text>
+        <input class="input" placeholder="逗号分隔" value="{{form.tags}}" data-field="tags" bindinput="onInputChange" />
+      </view>
+
+      <view class="form-item">
+        <text class="label">穿着标记</text>
+        <picker mode="selector" range="{{wearFlagOptions}}" range-key="label" value="{{wearFlagIndex}}" bindchange="onWearFlagChange">
+          <view class="picker-view">{{wearFlagOptions[wearFlagIndex].label}}</view>
+        </picker>
+      </view>
+
+      <view class="form-item">
         <text class="label">购买日期</text>
         <picker mode="date" value="{{form.purchaseDate}}" bindchange="onPurchaseDateChange">
           <view class="picker-view">{{form.purchaseDate || '请选择'}}</view>

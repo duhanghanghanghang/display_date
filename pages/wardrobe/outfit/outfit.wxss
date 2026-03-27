@@ -15,6 +15,15 @@
   font-size: 28rpx;
 }
 
+/* 导出用离屏 canvas */
+.poster-canvas {
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  width: 375px;
+  height: 2400px;
+}
+
 /* 搭配预览区 */
 .avatar-section {
   background: rgba(255, 255, 255, 0.95);
@@ -143,6 +152,11 @@
 
 .action-btn.clear {
   background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: #fff;
+}
+
+.action-btn.export {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
   color: #fff;
 }
 

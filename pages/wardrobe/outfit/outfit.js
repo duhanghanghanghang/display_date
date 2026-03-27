@@ -435,4 +435,99 @@ Page({
     showToast('已清空', 'success')
   },
 
+  /** 将当前预览竖拼为长图并保存到相册 */
+  exportOutfitImage() {
+    const list = (this.data.selectedForPreview || []).filter(
+      p => p.item && p.item.imageUrl && !p.item._imgFailed
+    )
+    if (!list.length) {
+      showToast('请先选择有图的衣服', 'error')
+      return
+    }
+    const urls = list.map(p => p.item.imageUrl)
+    const title = this.data.currentOutfitName || '我的搭配'
+    wx.showLoading({ title: '生成中', mask: true })
+    wx.createSelectorQuery()
+      .in(this)
+      .select('#outfitPosterCanvas')
+      .fields({ node: true, size: true })
+      .exec((res) => {
+        const node = res && res[0] && res[0].node
+        if (!node) {
+          wx.hideLoading()
+          showToast('画布未就绪', 'error')
+          return
+        }
+        const canvas = node
+        const ctx = canvas.getContext('2d')
+        const dpr = wx.getSystemInfoSync().pixelRatio || 2
+        const cw = 375
+        const loadAllImages = async () => {
+          const images = []
+          for (const url of urls) {
+            await new Promise((resolve, reject) => {
+              const img = canvas.createImage()
+              img.onload = () => {
+                images.push(img)
+                resolve()
+              }
+              img.onerror = () => reject(new Error('load'))
+              img.src = url
+            })
+          }
+          return images
+        }
+        loadAllImages()
+          .then((images) => {
+            let totalH = 52
+            const heights = images.map(img => cw * (img.height / img.width))
+            heights.forEach(h => { totalH += h })
+            canvas.width = Math.floor(cw * dpr)
+            canvas.height = Math.floor(totalH * dpr)
+            ctx.scale(dpr, dpr)
+            ctx.fillStyle = '#ffffff'
+            ctx.fillRect(0, 0, cw, totalH)
+            ctx.fillStyle = '#333333'
+            ctx.font = 'bold 17px sans-serif'
+            ctx.fillText(title.length > 20 ? title.slice(0, 20) + '…' : title, 14, 30)
+            let y = 44
+            for (let k = 0; k < images.length; k++) {
+              const h = heights[k]
+              ctx.drawImage(images[k], 0, y, cw, h)
+              y += h
+            }
+            wx.canvasToTempFilePath({
+              canvas,
+              width: cw * dpr,
+              height: totalH * dpr,
+              destWidth: cw * 2,
+              destHeight: Math.floor(totalH * 2),
+              fileType: 'png',
+              quality: 1,
+              success: (r) => {
+                wx.hideLoading()
+                wx.saveImageToPhotosAlbum({
+                  filePath: r.tempFilePath,
+                  success: () => showToast('已保存到相册', 'success'),
+                  fail: (e) => {
+                    if (e.errMsg && (e.errMsg.includes('auth') || e.errMsg.includes('deny'))) {
+                      wx.openSetting({})
+                    }
+                    showToast('请允许保存到相册', 'error')
+                  }
+                })
+              },
+              fail: () => {
+                wx.hideLoading()
+                showToast('导出失败', 'error')
+              }
+            }, this)
+          })
+          .catch(() => {
+            wx.hideLoading()
+            showToast('图片加载失败', 'error')
+          })
+      })
+  },
+
 })

@@ -61,6 +61,18 @@
   </view>
 
   <view class="form-item">
+    <text class="label">标签</text>
+    <input class="input" placeholder="逗号分隔，如：通勤,约会" value="{{form.tags}}" data-field="tags" bindinput="onInputChange" />
+  </view>
+
+  <view class="form-item">
+    <text class="label">穿着标记</text>
+    <picker mode="selector" range="{{wearFlagOptions}}" range-key="label" value="{{wearFlagIndex}}" bindchange="onWearFlagChange">
+      <view class="picker-view">{{wearFlagOptions[wearFlagIndex].label}}</view>
+    </picker>
+  </view>
+
+  <view class="form-item">
     <text class="label">备注</text>
     <textarea class="textarea" placeholder="备注" value="{{form.note}}" data-field="note" bindinput="onInputChange" />
   </view>

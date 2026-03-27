@@ -25,6 +25,8 @@ Page({
         url: `/wardrobe/items/${this.data.id}`,
         method: 'GET'
       })
+      const wf = { OFTEN: '常穿', RARE: '少穿', WISHLIST: '想买' }
+      item.wearFlagLabel = wf[item.wearFlag] || ''
       this.setData({ item, loading: false })
     } catch (err) {
       this.setData({ loading: false })

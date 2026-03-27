@@ -3,7 +3,7 @@ const app = getApp()
 const { request } = require('../../../utils/request')
 const { showToast } = require('../../../utils/toast')
 const { ImageUploader } = require('../../../utils/imageUploader')
-const { COLORS, SEASONS } = require('../../../utils/constants')
+const { COLORS, SEASONS, WEAR_FLAG_OPTIONS } = require('../../../utils/constants')
 
 Page({
   data: {
@@ -20,11 +20,14 @@ Page({
       price: '',
       purchaseDate: '',
       imageUrl: '',
-      note: ''
+      note: '',
+      tags: ''
     },
     editingId: null,
     seasons: SEASONS,
     colors: COLORS,
+    wearFlagOptions: WEAR_FLAG_OPTIONS,
+    wearFlagIndex: 0,
     colorIndex: -1,
     seasonIndex: -1
   },
@@ -68,6 +71,7 @@ Page({
       editingId: null,
       colorIndex: -1,
       seasonIndex: -1,
+      wearFlagIndex: 0,
       form: {
         name: '',
         color: '',
@@ -77,7 +81,8 @@ Page({
         price: '',
         purchaseDate: '',
         imageUrl: '',
-        note: ''
+        note: '',
+        tags: ''
       }
     })
   },
@@ -86,11 +91,14 @@ Page({
     const item = e.currentTarget.dataset.item
     const colorIdx = COLORS.indexOf(item.color || '')
     const seasonIdx = SEASONS.indexOf(item.season || '')
+    let wfIdx = WEAR_FLAG_OPTIONS.findIndex(w => w.value === (item.wearFlag || ''))
+    if (wfIdx < 0) wfIdx = 0
     this.setData({
       showAddDialog: true,
       editingId: item.id,
       colorIndex: colorIdx >= 0 ? colorIdx : -1,
       seasonIndex: seasonIdx >= 0 ? seasonIdx : -1,
+      wearFlagIndex: wfIdx,
       form: {
         name: item.name,
         color: item.color || '',
@@ -100,7 +108,8 @@ Page({
         price: item.price ? String(item.price) : '',
         purchaseDate: item.purchaseDate || '',
         imageUrl: item.imageUrl || '',
-        note: item.note || ''
+        note: item.note || '',
+        tags: item.tags || ''
       }
     })
   },
@@ -132,6 +141,10 @@ Page({
     this.setData({ colorIndex: idx, 'form.color': color })
   },
 
+  onWearFlagChange(e) {
+    this.setData({ wearFlagIndex: parseInt(e.detail.value, 10) })
+  },
+
   onPurchaseDateChange(e) {
     this.setData({ 'form.purchaseDate': e.detail.value })
   },
@@ -152,7 +165,7 @@ Page({
   },
 
   async saveItem() {
-    const { form, editingId, categoryId } = this.data
+    const { form, editingId, categoryId, wearFlagOptions, wearFlagIndex } = this.data
     
     if (!form.name || !form.name.trim()) {
       showToast('请输入衣服名称', 'error')
@@ -160,6 +173,7 @@ Page({
     }
 
     try {
+      const wearFlag = wearFlagOptions[wearFlagIndex]?.value || null
       const data = {
         categoryId: categoryId,
         name: form.name.trim(),
@@ -170,7 +184,9 @@ Page({
         price: form.price ? parseFloat(form.price) : null,
         purchaseDate: form.purchaseDate || null,
         imageUrl: form.imageUrl,
-        note: form.note
+        note: form.note,
+        tags: form.tags ? form.tags.trim() : null,
+        wearFlag: wearFlag || null
       }
 
       if (editingId) {

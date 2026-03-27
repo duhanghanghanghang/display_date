@@ -13,6 +13,14 @@
   <view class="info-card">
     <text class="item-name">{{item.name}}</text>
     <text class="item-meta">{{item.categoryName || '-'}} · {{item.color || '-'}} · {{item.season || '-'}}</text>
+    <view class="wear-badges" wx:if="{{item.wearFlagLabel}}">
+      <text class="wear-badge">{{item.wearFlagLabel}}</text>
+    </view>
+
+    <view class="info-row" wx:if="{{item.tags}}">
+      <text class="info-label">标签</text>
+      <text class="info-value">{{item.tags}}</text>
+    </view>
 
     <view class="info-row" wx:if="{{item.size}}">
       <text class="info-label">尺码</text>

@@ -10,7 +10,8 @@
     "pages/wardrobe/outfit/outfit",
     "pages/wardrobe/item-list/item-list",
     "pages/wardrobe/item-detail/item-detail",
-    "pages/wardrobe/category/category"
+    "pages/wardrobe/category/category",
+    "pages/wardrobe/wear-calendar/wear-calendar"
   ],
   "window": {
     "navigationBarBackgroundColor": "#4A90E2",
@@ -28,6 +29,10 @@
       {
         "pagePath": "pages/wardrobe/item-list/item-list",
         "text": "全部"
+      },
+      {
+        "pagePath": "pages/wardrobe/wear-calendar/wear-calendar",
+        "text": "日历"
       },
       {
         "pagePath": "pages/wardrobe/category/category",

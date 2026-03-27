@@ -1,0 +1,38 @@
+<view class="calendar-page">
+  <view class="month-bar">
+    <text class="month-btn" bindtap="prevMonth">‹</text>
+    <text class="month-title">{{year}}年{{month}}月</text>
+    <text class="month-btn" bindtap="nextMonth">›</text>
+  </view>
+
+  <view class="week-head">
+    <text wx:for="{{weekDays}}" wx:key="*this">{{item}}</text>
+  </view>
+
+  <view class="day-grid">
+    <view class="day-cell empty" wx:for="{{paddingBefore}}" wx:key="*this"></view>
+    <view class="day-cell {{item.hasLog ? 'has-log' : ''}} {{item.isToday ? 'today' : ''}}"
+          wx:for="{{days}}" wx:key="day"
+          bindtap="onTapDay" data-date="{{item.dateStr}}">
+      <text class="day-num">{{item.day}}</text>
+      <text class="dot" wx:if="{{item.hasLog}}">·</text>
+    </view>
+  </view>
+
+  <view class="hint">点击日期记录当天穿了哪套搭配</view>
+</view>
+
+<view class="modal-mask" wx:if="{{showDayModal}}" bindtap="closeModal">
+  <view class="modal-box" catchtap="noop">
+    <view class="modal-title">{{selectedDate}} 穿搭</view>
+    <picker mode="selector" range="{{outfitPickerLabels}}" value="{{outfitPickerIndex}}" bindchange="onOutfitPick">
+      <view class="picker-line">选择搭配：{{outfitPickerLabels[outfitPickerIndex]}}</view>
+    </picker>
+    <input class="modal-input" placeholder="备注（可选）" value="{{dayNote}}" bindinput="onDayNoteInput" />
+    <view class="modal-actions">
+      <button class="btn ghost" bindtap="closeModal">取消</button>
+      <button class="btn danger" wx:if="{{existingLogId}}" bindtap="deleteDayLog">删除记录</button>
+      <button class="btn primary" bindtap="saveDayLog">保存</button>
+    </view>
+  </view>
+</view>

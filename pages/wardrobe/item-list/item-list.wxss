@@ -1,3 +1,102 @@
+.container {
+  padding: 24rpx;
+}
+
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.search-input {
+  flex: 1;
+  background: #fff;
+  padding: 20rpx 24rpx;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+}
+
+.search-btn {
+  color: #4A90E2;
+  font-size: 28rpx;
+  padding: 16rpx;
+}
+
+.extra-filter {
+  background: #fff;
+  padding: 20rpx;
+  border-radius: 12rpx;
+  margin-bottom: 20rpx;
+}
+
+.price-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+  font-size: 26rpx;
+}
+
+.price-label {
+  color: #666;
+}
+
+.price-input {
+  width: 140rpx;
+  border: 1rpx solid #eee;
+  padding: 8rpx 12rpx;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+}
+
+.tag-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.tag-input {
+  flex: 1;
+  border: 1rpx solid #eee;
+  padding: 12rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+}
+
+.apply-btn {
+  background: #4A90E2 !important;
+  color: #fff !important;
+}
+
+.item-badges {
+  padding: 0 12rpx 8rpx;
+  display: flex;
+  gap: 8rpx;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-size: 20rpx;
+  padding: 4rpx 10rpx;
+  border-radius: 6rpx;
+}
+
+.badge.often {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.badge.rare {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.badge.wish {
+  background: #fce4ec;
+  color: #c2185b;
+}
+
 .filter-bar {
   display: flex;
   flex-wrap: wrap;

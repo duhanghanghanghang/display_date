@@ -1,5 +1,10 @@
 <!--pages/wardrobe/item-list/item-list.wxml-->
 <view class="container">
+  <view class="search-row">
+    <input class="search-input" placeholder="搜索名称、品牌、标签" value="{{q}}" confirm-type="search" bindinput="onSearchInput" bindconfirm="onSearchConfirm" />
+    <text class="search-btn" bindtap="onSearchConfirm">搜索</text>
+  </view>
+
   <view class="filter-bar">
     <picker mode="selector" range="{{categories}}" range-key="name" value="{{categoryIndex}}" bindchange="onCategoryChange">
       <view class="filter-item">{{categories[categoryIndex] ? categories[categoryIndex].name : '全部分类'}} ▼</view>
@@ -10,7 +15,23 @@
     <picker mode="selector" range="{{seasons}}" value="{{seasonIndex}}" bindchange="onSeasonChange">
       <view class="filter-item">{{season || '季节'}} ▼</view>
     </picker>
+    <picker mode="selector" range="{{wearFlagLabels}}" value="{{wearFlagIndex}}" bindchange="onWearFlagChange">
+      <view class="filter-item">{{wearFlagLabels[wearFlagIndex]}} ▼</view>
+    </picker>
     <view class="filter-item reset" bindtap="resetFilter">重置</view>
+  </view>
+
+  <view class="extra-filter">
+    <view class="price-row">
+      <text class="price-label">价格</text>
+      <input class="price-input" type="digit" placeholder="最低" value="{{minPrice}}" bindinput="onMinPrice" />
+      <text>-</text>
+      <input class="price-input" type="digit" placeholder="最高" value="{{maxPrice}}" bindinput="onMaxPrice" />
+    </view>
+    <view class="tag-filter-row">
+      <input class="tag-input" placeholder="标签包含（如：通勤）" value="{{tagsFilter}}" bindinput="onTagsFilter" />
+      <button class="apply-btn" size="mini" bindtap="onApplyFilter">应用</button>
+    </view>
   </view>
 
   <view class="list" wx:if="{{items.length > 0}}">
@@ -19,7 +40,12 @@
       <view wx:elif="{{item.imageUrl && item._imgFailed}}" class="item-img item-img-failed">图片加载失败</view>
       <view wx:else class="item-img item-img-failed">无图片</view>
       <text class="item-name">{{item.name}}</text>
-      <text class="item-meta">{{item.categoryName || '-'}} · {{item.season || '-'}}</text>
+      <text class="item-meta">{{item.categoryName || '-'}} · {{item.season || '-'}}<text wx:if="{{item.price}}"> · ¥{{item.price}}</text></text>
+      <view class="item-badges" wx:if="{{item.wearFlag === 'OFTEN' || item.wearFlag === 'RARE' || item.wearFlag === 'WISHLIST'}}">
+        <text class="badge often" wx:if="{{item.wearFlag === 'OFTEN'}}">常穿</text>
+        <text class="badge rare" wx:if="{{item.wearFlag === 'RARE'}}">少穿</text>
+        <text class="badge wish" wx:if="{{item.wearFlag === 'WISHLIST'}}">想买</text>
+      </view>
     </view>
   </view>
 

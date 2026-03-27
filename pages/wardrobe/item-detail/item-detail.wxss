@@ -35,6 +35,19 @@
   margin-bottom: 12rpx;
 }
 
+.wear-badges {
+  margin: 12rpx 0;
+}
+
+.wear-badge {
+  display: inline-block;
+  font-size: 24rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
 .item-meta {
   font-size: 26rpx;
   color: #999;

@@ -2,12 +2,6 @@ const { showToast } = require('../../../utils/toast')
 const app = getApp()
 
 Page({
-  onShow() {
-    if (!wx.getStorageSync('openid')) {
-      wx.reLaunch({ url: '/pages/wardrobe/login/login' })
-    }
-  },
-
   goSettings() {
     wx.navigateTo({ url: '/pages/wardrobe/settings/settings' })
   },
@@ -23,16 +17,16 @@ Page({
   async onLogout() {
     const { confirm } = await wx.showModal({
       title: '提示',
-      content: '确定要退出吗？'
+      content: '将清除本地登录态并重新通过微信授权。确定继续？'
     })
     if (!confirm) return
     try {
       wx.removeStorageSync('openid')
     } catch (e) {}
-    app.globalData.openid = ''
-    showToast('已退出', 'success')
+    if (app) app.globalData.openid = ''
+    showToast('已重新发起授权', 'none')
     setTimeout(() => {
-      wx.reLaunch({ url: '/pages/wardrobe/login/login' })
-    }, 400)
+      wx.reLaunch({ url: '/pages/wardrobe/wardrobe' })
+    }, 300)
   }
 })

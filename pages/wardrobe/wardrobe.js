@@ -39,10 +39,6 @@ Page({
   },
 
   onShow() {
-    if (!wx.getStorageSync('openid')) {
-      wx.reLaunch({ url: '/pages/wardrobe/login/login' })
-      return
-    }
     this.loadHomeData()
   },
 

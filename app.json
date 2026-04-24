@@ -3,7 +3,6 @@
     "weui": true
   },
   "pages": [
-    "pages/wardrobe/login/login",
     "pages/wardrobe/wardrobe",
     "pages/wardrobe/mine/mine",
     "pages/wardrobe/stats/stats",

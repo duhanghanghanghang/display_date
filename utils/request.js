@@ -29,9 +29,11 @@ function request({ url, method = 'GET', data = {}, auth = true }) {
             try {
               wx.removeStorageSync('openid')
             } catch (e) {}
-            wx.showToast({ title: '请先登录', icon: 'none' })
+            const app = getApp()
+            if (app) app.globalData.openid = ''
+            wx.showToast({ title: '登录已失效，将重新授权', icon: 'none' })
             setTimeout(() => {
-              wx.reLaunch({ url: '/pages/wardrobe/login/login' })
+              wx.reLaunch({ url: '/pages/wardrobe/wardrobe' })
             }, 500)
           } else {
             wx.showToast({ title: errorMsg, icon: 'none' })

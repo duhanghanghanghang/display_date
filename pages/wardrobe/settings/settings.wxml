@@ -1,0 +1,9 @@
+<view class="set-page">
+  <view class="item" bindtap="noop"><text>个人信息</text><text class="g">›</text></view>
+  <view class="item" bindtap="onPrivacy"><text>隐私权限</text><text class="g">›</text></view>
+  <view class="item row2">
+    <text>消息通知</text>
+    <switch color="#D8A7B1" checked="{{notifyOn}}" bindchange="onNotify" />
+  </view>
+  <view class="item" bindtap="noop"><text>关于我们</text><text class="g">›</text></view>
+</view>

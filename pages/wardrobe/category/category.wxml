@@ -34,19 +34,3 @@
     </view>
   </view>
 </view>
-
-<!-- 编辑弹窗 -->
-<view class="modal-mask" wx:if="{{editingId}}" bindtap="hideEdit">
-  <view class="modal-content" catchtap="stopPropagation">
-    <view class="modal-header">
-      <text class="modal-title">编辑分类</text>
-    </view>
-    <view class="modal-body">
-      <input class="common-input" placeholder="请输入分类名称" value="{{editName}}" bindinput="onEditNameInput" />
-    </view>
-    <view class="modal-footer">
-      <button class="modal-btn cancel" bindtap="hideEdit">取消</button>
-      <button class="modal-btn primary" bindtap="submitEdit">保存</button>
-    </view>
-  </view>
-</view>

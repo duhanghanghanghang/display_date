@@ -1,150 +1,72 @@
-<!-- pages/wardrobe/wardrobe.wxml -->
-<view class="wardrobe-container">
-  <!-- 统计卡片区域 -->
-  <view class="stats-header">
-    <view class="stats-grid">
-      <view class="stat-item" wx:for="{{categories}}" wx:key="id" 
-            bindtap="goToCategoryItems" data-id="{{item.id}}" data-name="{{item.name}}">
-        <view class="stat-number">{{item.count}}</view>
-        <view class="stat-label">{{item.name}}</view>
+<view class="wardrobe-page">
+  <view class="top-bar">
+    <text class="top-icon" bindtap="goToCategory" aria-label="分类">☰</text>
+    <view class="top-spacer" />
+    <text class="top-icon" bindtap="goToItemList" aria-label="搜索">🔍</text>
+  </view>
+
+  <view class="stats-row">
+    <view class="stat-block">
+      <text class="stat-label">总衣物</text>
+      <text class="stat-num">{{statTotal}}</text>
+    </view>
+    <view class="stat-block">
+      <text class="stat-label">分类</text>
+      <text class="stat-num">{{statCategoryCount}}</text>
+    </view>
+    <view class="stat-block">
+      <text class="stat-label">总价值</text>
+      <text class="stat-num stat-price">¥{{statValueText}}</text>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-head">
+      <text class="section-title">衣物分类</text>
+      <text class="section-link" bindtap="goToCategory">管理分类</text>
+    </view>
+    <view class="cat-grid">
+      <view
+        class="cat-cell"
+        wx:for="{{categoryCells}}"
+        wx:key="key"
+        bindtap="onCategoryCellTap"
+        data-cell="{{item}}"
+      >
+        <text class="cat-emoji">{{item.emoji}}</text>
+        <text class="cat-name">{{item.name}}</text>
       </view>
     </view>
   </view>
 
-  <!-- 操作按钮区域 -->
-  <view class="action-buttons">
-    <button class="action-btn add-item" bindtap="showAddItem">
-      <text class="btn-icon">👔</text>
-      <text>添加衣服</text>
-    </button>
-    
-    <button class="action-btn secondary" bindtap="goToOutfit">
-      <text class="btn-icon">👗</text>
-      <text>虚拟试衣</text>
-    </button>
-  </view>
-
-  <!-- 虚拟试衣 - 全部搭配方案 -->
-  <view class="outfit-section">
-    <view class="outfit-section-title">我的搭配方案</view>
-    <block wx:if="{{savedOutfits.length > 0}}">
-      <view class="outfit-list">
-        <view class="outfit-card" wx:for="{{savedOutfits}}" wx:key="id" bindtap="goToOutfit" data-outfit="{{item}}">
-          <view class="outfit-card-img-wrap">
-            <block wx:if="{{item.previewImages && item.previewImages.length > 0}}">
-              <image wx:for="{{item.previewImages}}" wx:key="*this" wx:for-item="img" class="outfit-card-img" src="{{img}}" mode="aspectFill" />
-            </block>
-            <view wx:else class="outfit-card-placeholder">👔</view>
-          </view>
-          <text class="outfit-card-name">{{item.name}}</text>
-          <text class="outfit-card-count">{{item.itemCount}}件</text>
-        </view>
+  <view class="section">
+    <view class="section-head">
+      <text class="section-title">全部衣物</text>
+      <view class="add-inline" bindtap="goToAddItem">
+        <text class="add-icon">+</text>
+        <text>添加</text>
       </view>
-      <view class="outfit-add-row" bindtap="goToOutfit">
-        <view class="outfit-card-add-inner">
-          <text class="outfit-card-add-icon">+</text>
-          <text class="outfit-card-add-text">新建搭配</text>
-        </view>
-      </view>
-    </block>
-    <view wx:else class="outfit-empty" bindtap="goToOutfit">
-      <text class="outfit-empty-icon">👗</text>
-      <text class="outfit-empty-text">搭配你的造型，点击进入虚拟试衣</text>
     </view>
-  </view>
-
-  <!-- 提示文本 -->
-  <view class="tip-text" wx:if="{{categories.length === 0}}">
-    <text>还没有衣服分类，点击底部分类添加标签～</text>
-  </view>
-</view>
-
-<!-- 添加分类弹窗 -->
-<view class="modal-mask" wx:if="{{showCategoryDialog}}" bindtap="closeCategoryDialog">
-  <view class="modal-content" catchtap="stopPropagation">
-    <view class="modal-header">
-      <text class="modal-title">添加标签</text>
-      <text class="modal-close" bindtap="closeCategoryDialog">✕</text>
-    </view>
-    
-    <view class="modal-body">
-      <input 
-        class="common-input"
-        placeholder="请输入标签名称（如：T恤、外套等）"
-        value="{{newCategoryName}}"
-        bindinput="onCategoryNameInput"
-        focus="{{showCategoryDialog}}"
-        maxlength="20"
-      />
-    </view>
-    
-    <view class="modal-footer">
-      <button class="modal-btn cancel" bindtap="closeCategoryDialog">取消</button>
-      <button class="modal-btn confirm" bindtap="createCategory">确定</button>
-    </view>
-  </view>
-</view>
-
-<!-- 添加衣服弹窗 -->
-<view class="modal-mask" wx:if="{{showAddItemDialog}}" bindtap="closeAddItemDialog">
-  <view class="modal-content large" catchtap="stopPropagation">
-    <view class="modal-header">
-      <text class="modal-title">添加衣服</text>
-      <text class="modal-close" bindtap="closeAddItemDialog">✕</text>
-    </view>
-    
-    <scroll-view class="modal-body" scroll-y>
-      <!-- 选择标签 -->
-      <view class="form-item">
-        <text class="label">选择标签<text class="required">*</text></text>
-        <picker mode="selector" range="{{categories}}" range-key="name" value="{{selectedCategoryIndex}}" bindchange="onCategoryChange">
-          <view class="picker-view">
-            {{categories[selectedCategoryIndex].name || '请选择'}}
-          </view>
-        </picker>
-      </view>
-
-      <!-- 上传图片 -->
-      <view class="form-item">
-        <text class="label">衣服图片<text class="required">*</text></text>
-        <view class="upload-area" wx:if="{{!itemForm.imageUrl}}" bindtap="chooseItemImage">
-          <text class="upload-icon">📷</text>
-          <text class="upload-text">点击上传衣服照片</text>
-        </view>
-        <view class="image-preview" wx:else bindtap="previewItemImage">
-          <image src="{{itemForm.imageUrl}}" mode="aspectFill" />
-          <text class="remove-image" catchtap="removeItemImage">✕</text>
-        </view>
-      </view>
-
-      <!-- 衣服名称 -->
-      <view class="form-item">
-        <text class="label">衣服名称<text class="required">*</text></text>
-        <input 
-          class="input" 
-          placeholder="如：白色T恤、牛仔裤" 
-          value="{{itemForm.name}}" 
-          bindinput="onItemNameInput"
-          maxlength="50"
+    <view class="item-grid" wx:if="{{homeItems.length > 0}}">
+      <view class="item-card" wx:for="{{homeItems}}" wx:key="id" bindtap="goItemDetail" data-id="{{item.id}}">
+        <image
+          wx:if="{{item.imageUrl}}"
+          class="item-img"
+          src="{{item.imageUrl}}"
+          mode="aspectFill"
         />
+        <view wx:else class="item-img item-img-ph">无图</view>
+        <view class="item-bottom">
+          <text class="item-name ellipsis">{{item.name}}</text>
+          <text class="item-price" wx:if="{{item.price != null && item.price !== ''}}">¥{{item.price}}</text>
+        </view>
       </view>
-
-      <!-- 价格 -->
-      <view class="form-item">
-        <text class="label">购买价格</text>
-        <input 
-          class="input" 
-          type="digit" 
-          placeholder="选填，如：199" 
-          value="{{itemForm.price}}" 
-          bindinput="onItemPriceInput"
-        />
-      </view>
-    </scroll-view>
-    
-    <view class="modal-footer">
-      <button class="modal-btn cancel" bindtap="closeAddItemDialog">取消</button>
-      <button class="modal-btn confirm" bindtap="saveItem">保存</button>
     </view>
+    <view class="empty-hint" wx:else>暂无衣物，点击添加录入第一件吧</view>
+    <view
+      class="more-link"
+      wx:if="{{statTotal > homeItems.length}}"
+      bindtap="goToItemList"
+    >查看全部</view>
   </view>
 </view>

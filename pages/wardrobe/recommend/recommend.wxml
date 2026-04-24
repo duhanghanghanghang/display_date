@@ -1,0 +1,14 @@
+<view class="rec">
+  <view class="head">
+    <text class="head-t">根据你的衣物，为你推荐今日穿搭</text>
+    <text class="head-refresh" bindtap="load">换一换</text>
+  </view>
+  <view class="card" wx:if="{{pair.length>0}}">
+    <view class="imgs">
+      <image wx:for="{{pair}}" wx:key="id" class="im" src="{{item.imageUrl}}" mode="aspectFill" />
+    </view>
+    <text class="title">休闲日常搭配</text>
+    <text class="sub">{{subText}}</text>
+  </view>
+  <view class="empty" wx:else>衣物较少，多添加几件再试吧</view>
+</view>

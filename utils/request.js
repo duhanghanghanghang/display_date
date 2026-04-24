@@ -26,8 +26,13 @@ function request({ url, method = 'GET', data = {}, auth = true }) {
           
           // 如果是认证错误，清除本地 openid 并重新登录
           if (res.statusCode === 401 || res.statusCode === 403) {
-            wx.removeStorageSync('openid')
-            wx.showToast({ title: '登录已过期，请重新登录', icon: 'none' })
+            try {
+              wx.removeStorageSync('openid')
+            } catch (e) {}
+            wx.showToast({ title: '请先登录', icon: 'none' })
+            setTimeout(() => {
+              wx.reLaunch({ url: '/pages/wardrobe/login/login' })
+            }, 500)
           } else {
             wx.showToast({ title: errorMsg, icon: 'none' })
           }

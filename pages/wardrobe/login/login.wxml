@@ -1,0 +1,36 @@
+<view class="login-page">
+  <view class="hero">
+    <text class="hero-icon">👔</text>
+    <text class="hero-title">智能衣橱</text>
+    <text class="hero-desc">管理你的穿搭，体验虚拟试衣</text>
+  </view>
+
+  <view class="form">
+    <input
+      class="input"
+      type="number"
+      maxlength="11"
+      placeholder="请输入手机号"
+      value="{{phone}}"
+      bindinput="onPhone"
+    />
+    <view class="code-row">
+      <input
+        class="input code-input"
+        type="number"
+        maxlength="6"
+        placeholder="请输入验证码"
+        value="{{smsCode}}"
+        bindinput="onCode"
+      />
+      <button class="code-btn" size="mini" disabled="{{codeSending || countdown>0}}" bindtap="onSendCode">
+        {{countdown>0 ? countdown + 's' : '获取'}}
+      </button>
+    </view>
+    <button class="btn-submit" bindtap="onPhoneLogin">登录 / 注册</button>
+    <button class="btn-wx" bindtap="onWxLogin">微信快速登录</button>
+  </view>
+
+  <view class="foot-tip">登录即代表同意《用户协议》《隐私政策》</view>
+  <view class="dev-tip">联调验证码：<text>123456</text></view>
+</view>

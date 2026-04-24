@@ -1,5 +1,4 @@
-<!--pages/wardrobe/item-detail/item-detail.wxml-->
-<view class="container" wx:if="{{!loading && item}}">
+<view class="container detail-proto" wx:if="{{!loading && item}}">
   <view class="image-wrap" wx:if="{{item.imageUrl && !item._imgFailed}}" bindtap="previewImage">
     <image class="main-img" src="{{item.imageUrl}}" mode="aspectFill" binderror="onImageError" />
   </view>
@@ -10,44 +9,26 @@
     <text>无图片</text>
   </view>
 
-  <view class="info-card">
+  <view class="head-block">
     <text class="item-name">{{item.name}}</text>
-    <text class="item-meta">{{item.categoryName || '-'}} · {{item.color || '-'}} · {{item.season || '-'}}</text>
-    <view class="wear-badges" wx:if="{{item.wearFlagLabel}}">
-      <text class="wear-badge">{{item.wearFlagLabel}}</text>
-    </view>
-
-    <view class="info-row" wx:if="{{item.tags}}">
-      <text class="info-label">标签</text>
-      <text class="info-value">{{item.tags}}</text>
-    </view>
-
-    <view class="info-row" wx:if="{{item.size}}">
-      <text class="info-label">尺码</text>
-      <text class="info-value">{{item.size}}</text>
-    </view>
-    <view class="info-row" wx:if="{{item.brand}}">
-      <text class="info-label">品牌</text>
-      <text class="info-value">{{item.brand}}</text>
-    </view>
-    <view class="info-row" wx:if="{{item.price}}">
-      <text class="info-label">价格</text>
-      <text class="info-value">¥{{item.price}}</text>
-    </view>
-    <view class="info-row" wx:if="{{item.purchaseDate}}">
-      <text class="info-label">购买日期</text>
-      <text class="info-value">{{item.purchaseDate}}</text>
-    </view>
-    <view class="info-row" wx:if="{{item.note}}">
-      <text class="info-label">备注</text>
-      <text class="info-value">{{item.note}}</text>
+    <view class="head-row">
+      <text class="item-price" wx:if="{{item.price != null && item.price !== ''}}">¥{{item.price}}</text>
+      <view wx:else class="spacer" />
+      <text class="cat-pill">{{item.categoryName || '未分类'}}</text>
     </view>
   </view>
 
-  <view class="actions">
-    <button class="btn-primary" bindtap="goEdit">编辑</button>
-    <button class="btn-secondary" bindtap="deleteItem">删除</button>
+  <view class="gray-block">
+    <view class="g-line" wx:if="{{item.brand}}"><text>品牌：{{item.brand}}</text></view>
+    <view class="g-line" wx:if="{{item.size}}"><text>尺码：{{item.size}}</text></view>
   </view>
+
+  <view class="btn-row">
+    <button class="b-primary" bindtap="goVirtual">虚拟试衣</button>
+    <button class="b-ghost" bindtap="goEdit">编辑信息</button>
+  </view>
+
+  <view class="del-tap" bindtap="deleteItem">删除衣物</view>
 </view>
 
 <view class="empty-tip" wx:elif="{{loading}}">加载中...</view>

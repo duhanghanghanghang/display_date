@@ -1,0 +1,23 @@
+<view class="ce" wx:if="{{id}}">
+  <view class="field">
+    <text class="lab">分类名称</text>
+    <input class="inp" value="{{name}}" bindinput="onName" placeholder="请输入分类名称" />
+  </view>
+  <view class="field">
+    <text class="lab">选择图标（示意）</text>
+    <view class="icons">
+      <text class="ic on">👕</text>
+      <text class="ic">🧥</text>
+    </view>
+  </view>
+  <view class="field">
+    <text class="lab">选择颜色（示意）</text>
+    <view class="colors">
+      <view class="dot on" style="background:#D8A7B1" />
+      <view class="dot" style="background:#60a5fa" />
+    </view>
+  </view>
+  <button class="save" bindtap="save">保存</button>
+  <button class="del" bindtap="remove">删除分类</button>
+</view>
+<view class="empty" wx:else>参数错误</view>

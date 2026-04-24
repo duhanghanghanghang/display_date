@@ -1,0 +1,118 @@
+.login-page {
+  min-height: 100vh;
+  background: #F8F4F7;
+  padding: 40rpx 48rpx 60rpx;
+  box-sizing: border-box;
+}
+
+.hero {
+  text-align: center;
+  margin: 40rpx 0 64rpx;
+}
+
+.hero-icon {
+  font-size: 100rpx;
+  display: block;
+  margin-bottom: 20rpx;
+}
+
+.hero-title {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #333;
+}
+
+.hero-desc {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  color: #888;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;
+}
+
+.input {
+  height: 96rpx;
+  padding: 0 28rpx;
+  background: #F0E8EB;
+  border-radius: 20rpx;
+  font-size: 28rpx;
+}
+
+.code-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.code-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.code-btn {
+  height: 96rpx;
+  line-height: 96rpx;
+  padding: 0 24rpx;
+  background: #D8A7B1;
+  color: #fff;
+  font-size: 24rpx;
+  border-radius: 20rpx;
+}
+
+.code-btn[disabled] {
+  opacity: 0.5;
+  color: #fff;
+}
+
+.btn-submit,
+.btn-wx {
+  height: 96rpx;
+  line-height: 96rpx;
+  border-radius: 20rpx;
+  font-size: 30rpx;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.btn-submit {
+  background: #D8A7B1;
+  color: #fff;
+  margin-top: 12rpx;
+}
+
+.btn-wx {
+  background: #fff;
+  color: #A88A93;
+  border: 2rpx solid #D8A7B1;
+  font-size: 28rpx;
+}
+
+.btn-wx::after,
+.btn-submit::after {
+  border: none;
+}
+
+.foot-tip {
+  margin-top: 40rpx;
+  text-align: center;
+  font-size: 20rpx;
+  color: #888;
+}
+
+.dev-tip {
+  margin-top: 20rpx;
+  text-align: center;
+  font-size: 22rpx;
+  color: #aaa;
+}
+
+.dev-tip text {
+  color: #D8A7B1;
+}

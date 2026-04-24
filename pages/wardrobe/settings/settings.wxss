@@ -1,0 +1,28 @@
+.set-page {
+  min-height: 100vh;
+  background: #F8F4F7;
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28rpx 32rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.g {
+  color: #ccc;
+  font-size: 32rpx;
+}
+
+.row2 {
+  display: flex;
+  justify-content: space-between;
+}

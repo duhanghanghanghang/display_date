@@ -31,7 +31,17 @@ Page({
   onLoad(options) {
     this._skipFirstShow = true
     const categoryId = options.category_id || options.categoryId || ''
-    this.setData({ categoryId })
+    const wf = options.wearFlag || options.wear_flag || ''
+    let wearFlagIndex = 0
+    let wearFlagValue = ''
+    if (wf) {
+      const i = WEAR_FLAGS.findIndex(x => x.value === wf)
+      if (i >= 0) {
+        wearFlagIndex = i
+        wearFlagValue = WEAR_FLAGS[i].value
+      }
+    }
+    this.setData({ categoryId, wearFlagIndex, wearFlagValue })
     this.loadCategories()
     this.loadItems(true)
   },

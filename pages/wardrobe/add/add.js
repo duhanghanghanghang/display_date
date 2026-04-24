@@ -33,6 +33,7 @@ Page({
   },
 
   onLoad(options) {
+    this._openAddAfterLoad = options.openAdd === '1' && !!options.categoryId
     if (options.categoryId) {
       this._skipFirstShow = true
       this.setData({
@@ -40,6 +41,17 @@ Page({
         categoryName: decodeURIComponent(options.categoryName || '')
       })
       this.loadItems()
+        .then(() => {
+          if (this._openAddAfterLoad) {
+            this._openAddAfterLoad = false
+            this.showAdd()
+          }
+        })
+        .catch(() => {
+          this._openAddAfterLoad = false
+        })
+    } else {
+      this._openAddAfterLoad = false
     }
   },
 

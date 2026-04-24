@@ -1,0 +1,38 @@
+<view class="stats-page" wx:if="{{!loading}}">
+  <view class="chart-ph">
+    <text class="chart-ico">◔</text>
+    <text>分类占比</text>
+    <view class="bar-list">
+      <view class="bar-row" wx:for="{{categoryShare}}" wx:key="categoryId">
+        <text class="bar-name">{{item.name}}</text>
+        <view class="bar-track">
+          <view class="bar-fill" style="width: {{item.percent}}%;" />
+        </view>
+        <text class="bar-pct">{{item.percent}}%</text>
+      </view>
+    </view>
+  </view>
+  <view class="chart-ph line">
+    <text class="chart-ico">〰</text>
+    <text>近6月消费（元）</text>
+    <view class="month-list">
+      <view class="month-item" wx:for="{{recentMonthlySpend}}" wx:key="mkey">
+        <text class="m-label">{{item.year}}-{{item.month}}</text>
+        <text class="m-val">¥{{item.amt}}</text>
+      </view>
+    </view>
+  </view>
+  <view class="kpi-row">
+    <view class="kpi">
+      <text class="kpi-label">穿搭频率</text>
+      <text class="kpi-val">{{wearFrequency}}次</text>
+      <text class="kpi-hint">近90天记录</text>
+    </view>
+    <view class="kpi">
+      <text class="kpi-label">闲置率</text>
+      <text class="kpi-val">{{idleRate}}%</text>
+      <text class="kpi-hint">少穿占比</text>
+    </view>
+  </view>
+</view>
+<view class="loading" wx:else>加载中…</view>

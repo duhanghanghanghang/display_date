@@ -7,9 +7,7 @@ Page({
     categories: [],
     loading: true,
     showAddModal: false,
-    addName: '',
-    editingId: '',
-    editName: ''
+    addName: ''
   },
 
   onLoad() {
@@ -66,30 +64,11 @@ Page({
 
   showEdit(e) {
     const cat = e.currentTarget.dataset.cat
-    this.setData({ editingId: cat.id, editName: cat.name })
-  },
-
-  hideEdit() {
-    this.setData({ editingId: '', editName: '' })
-  },
-
-  onEditNameInput(e) {
-    this.setData({ editName: e.detail.value })
-  },
-
-  async submitEdit() {
-    const { editingId, editName } = this.data
-    if (!editingId || !editName?.trim()) return
-    try {
-      await request({
-        url: `/wardrobe/categories/${editingId}`,
-        method: 'PATCH',
-        data: { name: editName.trim() }
-      })
-      this.setData({ editingId: '', editName: '' })
-      showToast('保存成功', 'success')
-      this.loadCategories()
-    } catch (err) {}
+    if (!cat) return
+    const name = encodeURIComponent(cat.name || '')
+    wx.navigateTo({
+      url: `/pages/wardrobe/category-edit/category-edit?id=${cat.id}&name=${name}`
+    })
   },
 
   async deleteCategory(e) {

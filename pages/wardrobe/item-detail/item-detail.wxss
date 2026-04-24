@@ -1,8 +1,15 @@
+.container {
+  padding: 24rpx;
+  min-height: 100vh;
+  background: #F8F4F7;
+  box-sizing: border-box;
+}
+
 .image-wrap {
   width: 100%;
-  height: 500rpx;
+  height: 448rpx;
   background: #f0f0f0;
-  border-radius: 12rpx;
+  border-radius: 20rpx;
   overflow: hidden;
   margin-bottom: 24rpx;
 }
@@ -20,82 +27,95 @@
   font-size: 28rpx;
 }
 
-.info-card {
-  background: #fff;
-  border-radius: 12rpx;
-  padding: 24rpx;
-  margin-bottom: 24rpx;
+.head-block {
+  margin-bottom: 20rpx;
 }
 
 .item-name {
-  font-size: 36rpx;
-  font-weight: 600;
+  font-size: 40rpx;
+  font-weight: 700;
   color: #333;
   display: block;
   margin-bottom: 12rpx;
 }
 
-.wear-badges {
-  margin: 12rpx 0;
-}
-
-.wear-badge {
-  display: inline-block;
-  font-size: 24rpx;
-  padding: 6rpx 16rpx;
-  border-radius: 8rpx;
-  background: #e3f2fd;
-  color: #1565c0;
-}
-
-.item-meta {
-  font-size: 26rpx;
-  color: #999;
-  display: block;
-  margin-bottom: 24rpx;
-}
-
-.info-row {
+.head-row {
   display: flex;
-  padding: 16rpx 0;
-  border-bottom: 1rpx solid #f0f0f0;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
 }
 
-.info-row:last-child {
-  border-bottom: none;
+.item-price {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #D8A7B1;
 }
 
-.info-label {
-  width: 160rpx;
-  color: #999;
-  font-size: 28rpx;
-}
-
-.info-value {
+.spacer {
   flex: 1;
+}
+
+.cat-pill {
+  font-size: 22rpx;
   color: #333;
-  font-size: 28rpx;
+  background: #F0E8EB;
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;
 }
 
-.actions {
+.gray-block {
+  font-size: 26rpx;
+  color: #888;
+  line-height: 1.7;
+  margin-bottom: 32rpx;
+}
+
+.g-line {
+  margin-bottom: 4rpx;
+}
+
+.btn-row {
   display: flex;
-  gap: 24rpx;
+  gap: 20rpx;
+  margin-bottom: 32rpx;
 }
 
-.actions .btn-primary,
-.actions .btn-secondary {
+.b-primary,
+.b-ghost {
   flex: 1;
+  font-size: 28rpx;
+  line-height: 1.2;
+  padding: 24rpx 0;
+  border-radius: 20rpx;
+  border: none;
+  margin: 0;
 }
 
-.btn-primary {
-  background: #4A90E2;
+.b-primary {
+  background: #D8A7B1;
   color: #fff;
-  border-radius: 12rpx;
 }
 
-.btn-secondary {
-  background: #fff;
-  color: #4A90E2;
-  border: 2rpx solid #4A90E2;
-  border-radius: 12rpx;
+.b-ghost {
+  background: #F0E8EB;
+  color: #333;
+}
+
+.b-primary::after,
+.b-ghost::after {
+  border: none;
+}
+
+.del-tap {
+  text-align: center;
+  color: #f87171;
+  font-size: 26rpx;
+  padding: 16rpx;
+}
+
+.empty-tip {
+  text-align: center;
+  color: #999;
+  padding: 80rpx;
 }

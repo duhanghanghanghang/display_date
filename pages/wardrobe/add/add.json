@@ -1,4 +1,7 @@
 {
-  "navigationBarTitleText": "衣服列表",
+  "navigationBarTitleText": "衣物",
+  "navigationBarBackgroundColor": "#D8A7B1",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#F8F4F7",
   "usingComponents": {}
 }

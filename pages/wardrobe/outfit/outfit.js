@@ -37,6 +37,12 @@ Page({
     this.loadData()
   },
 
+  onShow() {
+    if (!wx.getStorageSync('openid')) {
+      wx.reLaunch({ url: '/pages/wardrobe/login/login' })
+    }
+  },
+
   async loadData() {
     this.setData({ loading: true })
     try {

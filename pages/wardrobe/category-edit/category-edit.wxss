@@ -1,0 +1,95 @@
+.ce {
+  min-height: 100vh;
+  background: #F8F4F7;
+  padding: 32rpx 28rpx 60rpx;
+  box-sizing: border-box;
+}
+
+.field {
+  margin-bottom: 40rpx;
+}
+
+.lab {
+  display: block;
+  font-size: 24rpx;
+  color: #888;
+  margin-bottom: 12rpx;
+}
+
+.inp {
+  width: 100%;
+  height: 88rpx;
+  padding: 0 24rpx;
+  background: #F0E8EB;
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.icons,
+.colors {
+  display: flex;
+  gap: 20rpx;
+  align-items: center;
+}
+
+.ic {
+  width: 80rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  background: #F0E8EB;
+  border-radius: 16rpx;
+  font-size: 40rpx;
+  border: 2rpx solid transparent;
+}
+
+.ic.on {
+  background: #D8A7B1;
+  border-color: #D8A7B1;
+}
+
+.dot {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  border: 2rpx solid #eee;
+}
+
+.dot.on {
+  box-shadow: 0 0 0 2rpx #D8A7B1;
+}
+
+.save {
+  width: 100%;
+  background: #D8A7B1;
+  color: #fff;
+  border-radius: 16rpx;
+  margin-top: 20rpx;
+  font-size: 30rpx;
+  border: none;
+}
+
+.save::after {
+  border: none;
+}
+
+.del {
+  width: 100%;
+  margin-top: 24rpx;
+  background: #f87171;
+  color: #fff;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+  border: none;
+}
+
+.del::after {
+  border: none;
+}
+
+.empty {
+  text-align: center;
+  color: #999;
+  padding: 80rpx;
+}

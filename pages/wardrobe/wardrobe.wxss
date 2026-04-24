@@ -1,378 +1,197 @@
-/* pages/wardrobe/wardrobe.wxss */
-.wardrobe-container {
+.wardrobe-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 40rpx 30rpx;
+  background: #F8F4F7;
+  padding: 0 24rpx 32rpx;
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
 }
 
-/* 统计卡片 */
-.stats-header {
-  background: rgba(255, 255, 255, 0.95);
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 0 8rpx;
+}
+
+.top-icon {
+  font-size: 40rpx;
+  color: #A88A93;
+  padding: 8rpx 12rpx;
+}
+
+.top-spacer {
+  flex: 1;
+}
+
+/* 统计 */
+.stats-row {
+  display: flex;
+  justify-content: space-between;
+  background: #F0E8EB;
   border-radius: 24rpx;
-  padding: 40rpx;
-  margin-bottom: 40rpx;
-  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+  padding: 32rpx 24rpx;
+  margin-bottom: 32rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 30rpx;
-}
-
-.stat-item {
+.stat-block {
+  flex: 1;
   text-align: center;
-  padding: 30rpx 20rpx;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 16rpx;
-  transition: transform 0.3s;
-  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
-}
-
-.stat-item:active {
-  transform: scale(0.95);
-}
-
-.stat-number {
-  font-size: 48rpx;
-  font-weight: bold;
-  color: #fff;
-  margin-bottom: 8rpx;
 }
 
 .stat-label {
-  font-size: 28rpx;
-  color: rgba(255, 255, 255, 0.9);
+  display: block;
+  font-size: 24rpx;
+  color: #888888;
+  margin-bottom: 8rpx;
 }
 
-/* 操作按钮 */
-.action-buttons {
-  display: flex;
-  gap: 20rpx;
-  margin-bottom: 40rpx;
-  flex-wrap: wrap;
+.stat-num {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333333;
 }
 
-.action-btn {
-  flex: 1;
-  min-width: 200rpx;
-  height: 100rpx;
-  border-radius: 16rpx;
+.stat-price {
+  color: #D8A7B1;
+}
+
+/* 区块 */
+.section {
+  margin-bottom: 36rpx;
+}
+
+.section-head {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12rpx;
-  font-size: 30rpx;
-  font-weight: 500;
-  border: none;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
-  transition: transform 0.3s;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
 }
 
-.action-btn:active {
-  transform: scale(0.95);
-}
-
-.action-btn.add-item {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
-  flex-basis: 100%;
-}
-
-.action-btn.primary {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  color: #fff;
-}
-
-.action-btn.secondary {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  color: #fff;
-}
-
-.btn-icon {
-  font-size: 40rpx;
-}
-
-/* 虚拟试衣 - 全部搭配方案 */
-.outfit-section {
-  margin-bottom: 40rpx;
-  padding: 0 2px;
-}
-
-.outfit-section-title {
+.section-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.95);
-  margin-bottom: 20rpx;
+  color: #333333;
 }
 
-.outfit-list {
-  padding-bottom: 8rpx;
+.section-link {
+  font-size: 24rpx;
+  color: #D8A7B1;
 }
 
-.outfit-card {
-  display: block;
-  width: 100%;
-  margin-bottom: 20rpx;
-}
-
-.outfit-card-img-wrap {
-  width: 100%;
-  padding: 0 2px;
-  border-radius: 16rpx;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.2);
+.add-inline {
   display: flex;
-  gap: 2px;
-  aspect-ratio: 3 / 1;
+  align-items: center;
+  gap: 6rpx;
+  font-size: 24rpx;
+  color: #D8A7B1;
 }
 
-.outfit-card-img {
-  flex: 1;
-  width: 0;
-  min-width: 0;
-  height: 100%;
+.add-icon {
+  font-size: 28rpx;
+  font-weight: 600;
 }
 
-.outfit-card-placeholder {
+/* 分类四宫格 */
+.cat-grid {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.cat-cell {
   flex: 1;
-  width: 0;
   min-width: 0;
+  background: #F0E8EB;
+  border-radius: 16rpx;
+  padding: 20rpx 8rpx;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.cat-emoji {
+  display: block;
+  font-size: 32rpx;
+  margin-bottom: 8rpx;
+}
+
+.cat-name {
+  font-size: 20rpx;
+  color: #333333;
+  line-height: 1.2;
+  word-break: break-all;
+}
+
+/* 衣物双列 */
+.item-grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0;
+}
+
+.item-card {
+  width: 48.5%;
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  overflow: hidden;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+}
+
+.item-img {
+  width: 100%;
+  height: 220rpx;
+  background: #ECE6E8;
+  display: block;
+}
+
+.item-img-ph {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 64rpx;
+  font-size: 24rpx;
+  color: #999999;
 }
 
-.outfit-card-name {
+.item-bottom {
+  padding: 16rpx 16rpx 20rpx;
+}
+
+.item-name {
   display: block;
   font-size: 26rpx;
-  color: #fff;
-  margin-top: 12rpx;
+  font-weight: 500;
+  color: #333333;
+  margin-bottom: 6rpx;
+}
+
+.item-price {
+  font-size: 22rpx;
+  color: #D8A7B1;
+}
+
+.ellipsis {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.outfit-card-count {
-  display: block;
-  font-size: 22rpx;
-  color: rgba(255, 255, 255, 0.8);
-  margin-top: 4rpx;
-}
-
-.outfit-add-row {
-  margin-top: 20rpx;
-}
-
-.outfit-card-add-inner {
-  width: 100%;
-  aspect-ratio: 3 / 1;
-  border-radius: 16rpx;
-  border: 2rpx dashed rgba(255, 255, 255, 0.5);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.outfit-card-add-icon {
-  font-size: 48rpx;
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 8rpx;
-}
-
-.outfit-card-add-text {
-  font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.outfit-empty {
-  padding: 60rpx;
+.empty-hint {
   text-align: center;
-  border: 2rpx dashed rgba(255, 255, 255, 0.4);
-  border-radius: 24rpx;
+  color: #888888;
+  font-size: 26rpx;
+  padding: 48rpx 24rpx;
+  background: #FFFFFF;
+  border-radius: 20rpx;
 }
 
-.outfit-empty-icon {
-  display: block;
-  font-size: 80rpx;
-  margin-bottom: 16rpx;
-  opacity: 0.8;
-}
-
-.outfit-empty-text {
-  font-size: 28rpx;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-/* 提示文本 */
-.tip-text {
+.more-link {
   text-align: center;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 28rpx;
-  margin-top: 60rpx;
-}
-
-/* 弹窗样式 */
-.modal-mask {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-.modal-content {
-  width: 80%;
-  background: #fff;
-  border-radius: 24rpx;
-  overflow: hidden;
-}
-
-.modal-content.large {
-  width: 90%;
-  max-height: 80vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 40rpx 30rpx 20rpx;
-  border-bottom: 1rpx solid #eee;
-}
-
-.modal-title {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #333;
-}
-
-.modal-close {
-  font-size: 48rpx;
-  color: #999;
-  width: 60rpx;
-  height: 60rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-body {
-  padding: 40rpx 30rpx;
-}
-
-.modal-footer {
-  display: flex;
-  border-top: 1rpx solid #eee;
-}
-
-.modal-btn {
-  flex: 1;
-  height: 100rpx;
-  line-height: 100rpx;
-  text-align: center;
-  font-size: 32rpx;
-  border: none;
-  border-radius: 0;
-  background: #fff;
-}
-
-.modal-btn.cancel {
-  color: #999;
-  border-right: 1rpx solid #eee;
-}
-
-.modal-btn.confirm {
-  color: var(--primary-color, #4A90E2);
-  font-weight: 500;
-}
-
-/* 添加衣服表单样式 */
-.form-item {
-  margin-bottom: 30rpx;
-}
-
-.label {
-  display: block;
-  font-size: 28rpx;
-  color: #333;
-  margin-bottom: 12rpx;
-  font-weight: 500;
-}
-
-.required {
-  color: #f5576c;
-  margin-left: 4rpx;
-}
-
-.input,
-.picker-view {
-  width: 100%;
-  height: 88rpx;
-  padding: 0 24rpx;
-  box-sizing: border-box;
-  background: #f5f5f5;
-  border-radius: 12rpx;
-  font-size: 30rpx;
-  line-height: 88rpx;
-  display: flex;
-  align-items: center;
-}
-
-.upload-area {
-  height: 300rpx;
-  border: 2rpx dashed #ddd;
-  border-radius: 12rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16rpx;
-  background: #fafafa;
-}
-
-.upload-icon {
-  font-size: 80rpx;
-}
-
-.upload-text {
-  font-size: 28rpx;
-  color: #999;
-}
-
-.image-preview {
-  position: relative;
-  height: 300rpx;
-  border-radius: 12rpx;
-  overflow: hidden;
-  background: #f5f5f5;
-}
-
-.image-preview image {
-  width: 100%;
-  height: 100%;
-}
-
-.remove-image {
-  position: absolute;
-  top: 16rpx;
-  right: 16rpx;
-  width: 56rpx;
-  height: 56rpx;
-  background: rgba(0, 0, 0, 0.6);
-  border-radius: 50%;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40rpx;
+  color: #D8A7B1;
+  font-size: 26rpx;
+  margin-top: 8rpx;
+  padding: 16rpx;
 }

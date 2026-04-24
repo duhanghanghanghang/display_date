@@ -3,7 +3,14 @@
     "weui": true
   },
   "pages": [
+    "pages/wardrobe/login/login",
     "pages/wardrobe/wardrobe",
+    "pages/wardrobe/mine/mine",
+    "pages/wardrobe/stats/stats",
+    "pages/wardrobe/cleanup/cleanup",
+    "pages/wardrobe/recommend/recommend",
+    "pages/wardrobe/settings/settings",
+    "pages/wardrobe/category-edit/category-edit",
     "pages/wardrobe/crop/crop",
     "pages/wardrobe/add/add",
     "pages/wardrobe/edit/edit",
@@ -14,34 +21,30 @@
     "pages/wardrobe/wear-calendar/wear-calendar"
   ],
   "window": {
-    "navigationBarBackgroundColor": "#4A90E2",
-    "navigationBarTitleText": "我的衣柜",
+    "navigationBarBackgroundColor": "#D8A7B1",
+    "navigationBarTitleText": "智能衣橱",
     "navigationBarTextStyle": "white",
-    "backgroundColor": "#F5F5F5",
+    "backgroundColor": "#F8F4F7",
     "backgroundTextStyle": "dark"
   },
   "tabBar": {
     "list": [
       {
         "pagePath": "pages/wardrobe/wardrobe",
-        "text": "衣柜"
+        "text": "衣橱"
       },
       {
-        "pagePath": "pages/wardrobe/item-list/item-list",
-        "text": "全部"
+        "pagePath": "pages/wardrobe/outfit/outfit",
+        "text": "试衣"
       },
       {
-        "pagePath": "pages/wardrobe/wear-calendar/wear-calendar",
-        "text": "日历"
-      },
-      {
-        "pagePath": "pages/wardrobe/category/category",
-        "text": "分类"
+        "pagePath": "pages/wardrobe/mine/mine",
+        "text": "我的"
       }
     ],
-    "color": "#666666",
-    "selectedColor": "#4A90E2",
-    "borderStyle": "black",
+    "color": "#888888",
+    "selectedColor": "#D8A7B1",
+    "borderStyle": "white",
     "backgroundColor": "#ffffff"
   },
   "style": "v2",

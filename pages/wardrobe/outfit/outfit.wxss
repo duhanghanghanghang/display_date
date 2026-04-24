@@ -1,10 +1,30 @@
 /* pages/wardrobe/outfit/outfit.wxss */
 .outfit-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  background: #F8F4F7;
   padding: 30rpx;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+}
+
+.recommend-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 24rpx 28rpx;
+  margin-bottom: 20rpx;
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.r-arrow {
+  color: #D8A7B1;
+  font-size: 32rpx;
 }
 
 /* 加载 */
@@ -98,7 +118,7 @@
 }
 
 .preview-placeholder {
-  background: linear-gradient(135deg, var(--primary-color, #4A90E2) 0%, #3A7BC8 100%);
+  background: linear-gradient(135deg, #D8A7B1 0%, #A88A93 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -161,7 +181,7 @@
 }
 
 .action-btn.save {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(135deg, #D8A7B1 0%, #A88A93 100%);
   color: #fff;
 }
 
@@ -219,7 +239,7 @@
 
 .expand-btn {
   font-size: 24rpx;
-  color: var(--primary-color, #4A90E2);
+  color: #D8A7B1;
 }
 
 .items-row {
@@ -265,12 +285,12 @@
 }
 
 .item-chip.selected .chip-image {
-  border-color: #667eea;
+  border-color: #D8A7B1;
   box-shadow: 0 0 20rpx rgba(102, 126, 234, 0.5);
 }
 
 .chip-placeholder {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #D8A7B1 0%, #A88A93 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -380,7 +400,7 @@
   bottom: 12rpx;
   left: 16rpx;
   font-size: 22rpx;
-  color: var(--primary-color, #4A90E2);
+  color: #D8A7B1;
 }
 
 .delete-outfit {
@@ -479,6 +499,6 @@
 }
 
 .modal-btn.confirm {
-  color: var(--primary-color, #4A90E2);
+  color: #D8A7B1;
   font-weight: 500;
 }

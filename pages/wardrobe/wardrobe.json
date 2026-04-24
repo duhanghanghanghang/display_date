@@ -1,4 +1,7 @@
 {
-  "navigationBarTitleText": "衣柜管理",
+  "navigationBarTitleText": "我的衣橱",
+  "navigationBarBackgroundColor": "#D8A7B1",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#F8F4F7",
   "usingComponents": {}
 }

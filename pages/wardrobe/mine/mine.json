@@ -1,7 +1,6 @@
 {
-  "navigationBarTitleText": "穿搭日历",
+  "navigationBarTitleText": "个人中心",
   "navigationBarBackgroundColor": "#D8A7B1",
   "navigationBarTextStyle": "white",
-  "backgroundColor": "#F8F4F7",
   "usingComponents": {}
 }

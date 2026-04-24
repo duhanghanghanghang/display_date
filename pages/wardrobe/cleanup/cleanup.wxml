@@ -1,0 +1,16 @@
+<view class="cleanup">
+  <view class="tip">勾选闲置衣物，可批量删除</view>
+  <view class="list" wx:if="{{items.length>0}}">
+    <view class="row" wx:for="{{items}}" wx:key="id" bindtap="onToggle" data-id="{{item.id}}">
+      <view class="checkbox {{item._sel ? 'on' : ''}}" />
+      <image wx:if="{{item.imageUrl}}" class="thumb" src="{{item.imageUrl}}" mode="aspectFill" />
+      <view class="row-mid">
+        <text class="n">{{item.name}}</text>
+        <text class="d">少穿 / {{item.brand || '未标品牌'}}</text>
+      </view>
+      <text class="p" wx:if="{{item.price}}">¥{{item.price}}</text>
+    </view>
+  </view>
+  <view class="empty" wx:else>暂无可选闲置衣物，可在衣物详情将标记改为「少穿」</view>
+  <button class="del" disabled="{{!selectedCount}}" bindtap="onBatchDelete">批量删除选中（{{selectedCount}}）</button>
+</view>

@@ -2,6 +2,10 @@
 <view class="outfit-container">
   <view wx:if="{{loading}}" class="loading-tip">加载中...</view>
   <block wx:else>
+  <navigator class="recommend-link" url="/pages/wardrobe/recommend/recommend" hover-class="none">
+    <text>智能穿搭</text>
+    <text class="r-arrow">›</text>
+  </navigator>
   <!-- 搭配预览区：垂直拼接，可点击单张调整比例 -->
   <view class="avatar-section">
     <view class="preview-area" wx:if="{{selectedForPreview.length > 0}}">

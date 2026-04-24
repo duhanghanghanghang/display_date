@@ -47,6 +47,10 @@ Page({
     })
   },
 
+  goVirtual() {
+    wx.switchTab({ url: '/pages/wardrobe/outfit/outfit' })
+  },
+
   onImageError() {
     this.setData({ 'item._imgFailed': true })
   },
